@@ -1,11 +1,11 @@
 package cloudformation
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -44,12 +44,12 @@ func tableCloudformationResource(ctx context.Context) *plugin.Table {
 			{
 				Name:        "deletion_policy",
 				Description: "With the deletion_policy attribute you can preserve, and in some cases, backup a resource when its stack is deleted. You specify a deletion_policy attribute for each resource that you want to control.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "depends_on",
 				Description: "With the depends_on attribute you can specify that the creation of a specific resource follows another. When you add a depends_on attribute to a resource, that resource is created only after the creation of the resource specified in the depends_on attribute.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "metadata",
@@ -64,7 +64,7 @@ func tableCloudformationResource(ctx context.Context) *plugin.Table {
 			{
 				Name:        "update_replace_policy",
 				Description: "Use the update_replace_policy attribute to retain or, in some cases, backup the existing physical instance of a resource when it's replaced during a stack update operation.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "start_line",
@@ -99,71 +99,85 @@ type templateStruct struct {
 }
 
 func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	path := "/Users/subhajit/Desktop/AWSCloudFormation-samples/CloudWatch_Logs.template"
+	// path := "/Users/subhajit/Desktop/AWSCloudFormation-samples/CloudWatch_Logs.template"
 
-	// Read files
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		plugin.Logger(ctx).Error("yml_file.listYMLFileWithPath", "file_error", err, "path", path)
-		return nil, fmt.Errorf("failed to read file %s: %v", path, err)
-	}
-
-	// Parse file contents
-	var body interface{}
-	if err := yaml.Unmarshal(content, &body); err != nil {
-		panic(err)
-	}
-	body = convert(body)
-
-	var result templateStruct
-	if b, err := json.Marshal(body); err != nil {
-		panic(err)
+	// #1 - Path via qual
+	// If the path was requested through qualifier then match it exactly. Globs
+	// are not supported in this context since the output value for the column
+	// will never match the requested value.
+	//
+	// #2 - Path via glob paths in config
+	var paths []string
+	if d.KeyColumnQuals["path"] != nil {
+		paths = []string{d.KeyColumnQuals["path"].GetStringValue()}
 	} else {
-		err = json.Unmarshal(b, &result)
+		var err error
+		paths, err = listFilesByPath(ctx, d.Connection)
 		if err != nil {
-			plugin.Logger(ctx).Error("json_file.listJSONFileWithPath", "parse_error", err, "path", path)
-			return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
+			return nil, err
 		}
 	}
 
-	reader, err := os.Open(path)
-	if err != nil {
-		// Could not open the file, so log and ignore
-		plugin.Logger(ctx).Error("yml_key_value.listYMLKeyValue", "file_error", err, "path", path)
-		return nil, nil
-	}
+	for _, path := range paths {
+		// Read files
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			plugin.Logger(ctx).Error("yml_file.listYMLFileWithPath", "file_error", err, "path", path)
+			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
+		}
 
-	var root yaml.Node
-	decoder := yaml.NewDecoder(reader)
-	err = decoder.Decode(&root)
-	if err != nil {
-		plugin.Logger(ctx).Error("yml_key_value.listYMLKeyValue", "parse_error", err, "path", path)
-		return nil, fmt.Errorf("failed to parse file: %v", err)
-	}
-	var rows Rows
-	treeToList(&root, []string{}, &rows)
+		// Parse file contents
+		var body interface{}
+		if err := yaml.Unmarshal(content, &body); err != nil {
+			panic(err)
+		}
+		body = convert(body)
 
-	for k, v := range result.Resources {
-		test := v.(map[string]interface{})
-		var lineNo int
-		for _, r := range rows {
-			if r.Name == k {
-				lineNo = r.StartLine
+		var result templateStruct
+		if b, err := json.Marshal(body); err != nil {
+			panic(err)
+		} else {
+			err = json.Unmarshal(b, &result)
+			if err != nil {
+				plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "parse_error", err, "path", path)
+				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
 		}
-		d.StreamListItem(ctx, cloudformationResource{
-			Name:                k,
-			StartLine:           lineNo,
-			Type:                test["Type"].(string),
-			Path:                path,
-			Properties:          test["Properties"],
-			CreationPolicy:      test["CreationPolicy"],
-			DeletionPolicy:      test["DeletionPolicy"],
-			DependsOn:           test["DependsOn"],
-			Metadata:            test["Metadata"],
-			UpdatePolicy:        test["UpdatePolicy"],
-			UpdateReplacePolicy: test["UpdateReplacePolicy"],
-		})
+
+		// Decode file contents
+		var root yaml.Node
+		r := bytes.NewReader(content)
+		decoder := yaml.NewDecoder(r)
+		err = decoder.Decode(&root)
+		if err != nil {
+			plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "parse_error", err, "path", path)
+			return nil, fmt.Errorf("failed to parse file: %v", err)
+		}
+		var rows Rows
+		treeToList(&root, []string{}, &rows)
+
+		for k, v := range result.Resources {
+			test := v.(map[string]interface{})
+			var lineNo int
+			for _, r := range rows {
+				if r.Name == k {
+					lineNo = r.StartLine
+				}
+			}
+			d.StreamListItem(ctx, cloudformationResource{
+				Name:                k,
+				StartLine:           lineNo,
+				Type:                test["Type"].(string),
+				Path:                path,
+				Properties:          test["Properties"],
+				CreationPolicy:      test["CreationPolicy"],
+				DeletionPolicy:      test["DeletionPolicy"],
+				DependsOn:           test["DependsOn"],
+				Metadata:            test["Metadata"],
+				UpdatePolicy:        test["UpdatePolicy"],
+				UpdateReplacePolicy: test["UpdateReplacePolicy"],
+			})
+		}
 	}
 
 	return nil, nil

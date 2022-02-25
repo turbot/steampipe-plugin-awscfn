@@ -1,10 +1,79 @@
 package cloudformation
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
+	"github.com/bmatcuk/doublestar"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"gopkg.in/yaml.v3"
 )
+
+func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error) {
+	cloudformationConfig := GetConfig(p)
+	if cloudformationConfig.Paths == nil {
+		return nil, errors.New("json_paths must be configured to query JSON files")
+	}
+
+	var matches []string
+	for _, i := range cloudformationConfig.Paths {
+		// Check to resolve ~ to home dir
+		if strings.HasPrefix(i, "~") {
+			// File system context
+			home, err := os.UserHomeDir()
+			if err != nil {
+				plugin.Logger(ctx).Error("utils.listFilesByPath", "os.UserHomeDir error. ~ will not be expanded in paths", err, "path", i)
+				return nil, fmt.Errorf("os.UserHomeDir error. ~ will not be expanded in paths")
+			}
+
+			// Resolve ~ to home dir
+			if home != "" {
+				if i == "~" {
+					i = home
+				} else if strings.HasPrefix(i, "~/") {
+					i = filepath.Join(home, i[2:])
+				}
+			}
+		}
+
+		// Get full path
+		fullPath, err := filepath.Abs(i)
+		if err != nil {
+			plugin.Logger(ctx).Error("utils.listFilesByPath", "invlaid path", err, "path", i)
+			return nil, fmt.Errorf("failed to fetch absolute path")
+		}
+
+		// Expand globs
+		iMatches, err := doublestar.Glob(fullPath)
+		if err != nil {
+			plugin.Logger(ctx).Error("utils.listFilesByPath", "path is not a valid glob", err, "path", i)
+			return matches, fmt.Errorf("path is not a valid glob: %s", i)
+		}
+		matches = append(matches, iMatches...)
+	}
+
+	var fileList []string
+	for _, i := range matches {
+		// Check if file or directory
+		fileInfo, err := os.Stat(i)
+		if err != nil {
+			plugin.Logger(ctx).Error("utils.listFilesByPath", "error getting file info", err, "path", i)
+			return nil, err
+		}
+
+		// Ignore directories
+		if fileInfo.IsDir() {
+			continue
+		}
+		fileList = append(fileList, i)
+	}
+	return fileList, nil
+}
 
 func convert(i interface{}) interface{} {
 	switch valueType := i.(type) {
