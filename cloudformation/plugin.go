@@ -19,6 +19,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
+			"cloudformation_output":   tableCloudformationOutput(ctx),
 			"cloudformation_resource": tableCloudformationResource(ctx),
 		},
 	}

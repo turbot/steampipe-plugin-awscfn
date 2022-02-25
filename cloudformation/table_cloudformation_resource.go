@@ -99,8 +99,6 @@ type templateStruct struct {
 }
 
 func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// path := "/Users/subhajit/Desktop/AWSCloudFormation-samples/CloudWatch_Logs.template"
-
 	// #1 - Path via qual
 	// If the path was requested through qualifier then match it exactly. Globs
 	// are not supported in this context since the output value for the column
@@ -122,7 +120,7 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("yml_file.listYMLFileWithPath", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
 
@@ -154,7 +152,7 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 			return nil, fmt.Errorf("failed to parse file: %v", err)
 		}
 		var rows Rows
-		treeToList(&root, []string{}, &rows)
+		treeToList(&root, []string{}, &rows, "Resources")
 
 		for k, v := range result.Resources {
 			test := v.(map[string]interface{})

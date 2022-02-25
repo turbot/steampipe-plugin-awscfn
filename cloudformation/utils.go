@@ -97,21 +97,21 @@ type Row struct {
 	StartLine int
 }
 
-func treeToList(tree *yaml.Node, prefix []string, rows *Rows) {
+func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName string) {
 	switch tree.Kind {
 	case yaml.DocumentNode:
 		for _, v := range tree.Content {
-			treeToList(v, prefix, rows)
+			treeToList(v, prefix, rows, searchObjectName)
 		}
 	case yaml.SequenceNode:
 		for i, v := range tree.Content {
 			newKey := make([]string, len(prefix))
 			copy(newKey, prefix)
 			newKey = append(newKey, strconv.Itoa(i))
-			treeToList(v, newKey, rows)
+			treeToList(v, newKey, rows, searchObjectName)
 		}
 	case yaml.MappingNode:
-		if len(prefix) == 2 && prefix[0] == "Resources" {
+		if len(prefix) == 2 && prefix[0] == searchObjectName {
 			row := Row{
 				Name:      prefix[1],
 				StartLine: tree.Line,
@@ -126,7 +126,7 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows) {
 			newKey := make([]string, len(prefix))
 			copy(newKey, prefix)
 			newKey = append(newKey, key.Value)
-			treeToList(val, newKey, rows)
+			treeToList(val, newKey, rows, searchObjectName)
 		}
 	case yaml.ScalarNode:
 	}
