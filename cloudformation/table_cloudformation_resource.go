@@ -23,12 +23,12 @@ func tableCloudformationResource(ctx context.Context) *plugin.Table {
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
-				Description: "Resource name.",
+				Description: "An identifier for the resource.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "type",
-				Description: "Resource type.",
+				Description: "The resource type identifies the type of resource that you are declaring.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -155,7 +155,7 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 		treeToList(&root, []string{}, &rows, "Resources")
 
 		for k, v := range result.Resources {
-			test := v.(map[string]interface{})
+			data := v.(map[string]interface{})
 			var lineNo int
 			for _, r := range rows {
 				if r.Name == k {
@@ -165,15 +165,15 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 			d.StreamListItem(ctx, cloudformationResource{
 				Name:                k,
 				StartLine:           lineNo,
-				Type:                test["Type"].(string),
+				Type:                data["Type"].(string),
 				Path:                path,
-				Properties:          test["Properties"],
-				CreationPolicy:      test["CreationPolicy"],
-				DeletionPolicy:      test["DeletionPolicy"],
-				DependsOn:           test["DependsOn"],
-				Metadata:            test["Metadata"],
-				UpdatePolicy:        test["UpdatePolicy"],
-				UpdateReplacePolicy: test["UpdateReplacePolicy"],
+				Properties:          data["Properties"],
+				CreationPolicy:      data["CreationPolicy"],
+				DeletionPolicy:      data["DeletionPolicy"],
+				DependsOn:           data["DependsOn"],
+				Metadata:            data["Metadata"],
+				UpdatePolicy:        data["UpdatePolicy"],
+				UpdateReplacePolicy: data["UpdateReplacePolicy"],
 			})
 		}
 	}

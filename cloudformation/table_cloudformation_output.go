@@ -23,18 +23,23 @@ func tableCloudformationOutput(ctx context.Context) *plugin.Table {
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
-				Description: "Resource name.",
+				Description: "An identifier for the current output.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "value",
-				Description: "Specifies the resource properties.",
+				Description: "The value of the property returned by the aws cloudformation describe-stacks command. The value of an output can include literals, parameter references, pseudo-parameters, a mapping value, or intrinsic functions.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "description",
-				Description: "Output description.",
+				Description: "A String type that describes the output value. The value for the description declaration must be a literal string that's between 0 and 1024 bytes in length. You can't use a parameter or function to specify the description. The description can be a maximum of 4 K in length.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "export",
+				Description: "The name of the resource output to be exported for a cross-stack reference.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "start_line",
@@ -54,6 +59,7 @@ type cloudformationOutput struct {
 	Name        string
 	Value       interface{}
 	Description interface{}
+	Export      interface{}
 	StartLine   int
 	Path        string
 }
@@ -119,7 +125,7 @@ func listCloudformationOutputs(ctx context.Context, d *plugin.QueryData, h *plug
 		treeToList(&root, []string{}, &rows, "Outputs")
 
 		for k, v := range result.Outputs {
-			test := v.(map[string]interface{})
+			data := v.(map[string]interface{})
 			var lineNo int
 			for _, r := range rows {
 				if r.Name == k {
@@ -129,8 +135,9 @@ func listCloudformationOutputs(ctx context.Context, d *plugin.QueryData, h *plug
 
 			d.StreamListItem(ctx, cloudformationOutput{
 				Name:        k,
-				Value:       test["Value"],
-				Description: test["Description"],
+				Value:       data["Value"],
+				Description: data["Description"],
+				Export:      data["Export"],
 				StartLine:   lineNo,
 				Path:        path,
 			})

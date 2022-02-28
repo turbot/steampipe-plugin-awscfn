@@ -17,7 +17,7 @@ import (
 func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error) {
 	cloudformationConfig := GetConfig(p)
 	if cloudformationConfig.Paths == nil {
-		return nil, errors.New("json_paths must be configured to query JSON files")
+		return nil, errors.New("paths must be configured to query JSON files")
 	}
 
 	var matches []string
@@ -45,7 +45,7 @@ func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error
 		fullPath, err := filepath.Abs(i)
 		if err != nil {
 			plugin.Logger(ctx).Error("utils.listFilesByPath", "invlaid path", err, "path", i)
-			return nil, fmt.Errorf("failed to fetch absolute path")
+			return nil, fmt.Errorf("failed to fetch absolute path: %s", i)
 		}
 
 		// Expand globs
