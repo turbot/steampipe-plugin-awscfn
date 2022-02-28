@@ -1,31 +1,22 @@
-![image](https://hub.steampipe.io/images/plugins/turbot/cloudformation-social-graphic.png)
+---
+organization: Turbot
+category: ["software development"]
+icon_url: "/images/plugins/turbot/cloudformation.svg"
+brand_color: "#008000"
+display_name: "CloudFormation"
+short_name: "cloudformation"
+description: "Steampipe plugin to query data from CloudFormation template files."
+og_description: "Query Terraform files with SQL! Open source CLI. No DB required."
+og_image: "/images/plugins/turbot/cloudformation-social-graphic.png"
+---
 
-# CloudFormation Plugin for Steampipe
+# CloudFormation + Steampipe
 
-Use SQL to query data from CloudFormation template files.
+A CloudFormation template file is used to declare resources, variables, modules, and more.
 
-- **[Get started →](https://hub.steampipe.io/plugins/turbot/cloudformation)**
-- Documentation: [Table definitions & examples](https://hub.steampipe.io/plugins/turbot/cloudformation/tables)
-- Community: [Slack Channel](https://steampipe.io/community/join)
-- Get involved: [Issues](https://github.com/turbot/steampipe-plugin-cloudformation/issues)
+[Steampipe](https://steampipe.io) is an open source CLI to instantly query data using SQL.
 
-## Quick start
-
-Install the plugin with [Steampipe](https://steampipe.io):
-
-```shell
-steampipe plugin install cloudformation
-```
-
-Configure your [config file](https://hub.steampipe.io/plugins/turbot/cloudformation#configuration) to include directories with CloudFormation template files. If no directory is specified, the current working directory will be used.
-
-Run steampipe:
-
-```shell
-steampipe query
-```
-
-Query all resources in your Terraform files:
+Query all resources in your CloudFormation files:
 
 ```sql
 select
@@ -72,50 +63,55 @@ from
 +-----------------+----------------------+---------------------------------------------+
 ```
 
-## Developing
+## Documentation
 
-Prerequisites:
+- **[Table definitions & examples →](/plugins/turbot/cloudformation/tables)**
 
-- [Steampipe](https://steampipe.io/downloads)
-- [Golang](https://golang.org/doc/install)
+## Get started
 
-Clone:
+### Install
 
-```sh
-git clone https://github.com/turbot/steampipe-plugin-cloudformation.git
-cd steampipe-plugin-cloudformation
+Download and install the latest Terraform plugin:
+
+```bash
+steampipe plugin install cloudformation
 ```
 
-Build, which automatically installs the new version to your `~/.steampipe/plugins` directory:
+### Credentials
 
-```shell
-make
+No credentials are required.
+
+### Configuration
+
+Installing the latest cloudformation plugin will create a config file (`~/.steampipe/config/cloudformation.spc`) with a single connection named `cloudformation`:
+
+```hcl
+connection "cloudformation" {
+  plugin = "cloudformation"
+
+  # Paths is a list of locations to search for CloudFormation template files
+  # All paths are resolved relative to the current working directory (CWD)
+  # Wildcard based searches are supported, including recursive searches
+
+  # For example:
+  #  - "*.template" matches all CloudFormation template files in the CWD
+  #  - "**/*.template" matches all CloudFormation template files in the CWD and all sub-directories
+  #  - "../*.template" matches all CloudFormation template files in the CWD's parent directory
+  #  - "ELB*.template" matches all CloudFormation template files starting with "ELB" in the CWD
+  #  - "/path/to/dir/*.template" matches all CloudFormation template files in a specific directory
+  #  - "/path/to/dir/main.template" matches a specific file
+
+  # If paths includes "*", all files (including non-CloudFormation template files) in
+  # the CWD will be matched, which may cause errors if incompatible file types exist
+
+  # Defaults to CWD
+  paths = ["*.template"]
+}
 ```
 
-Configure the plugin:
+- `paths` - A list of directory paths to search for CloudFormation template files. Paths are resolved relative to the current working directory. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
 
-```shell
-cp config/* ~/.steampipe/config
-vi ~/.steampipe/config/cloudformation.spc
-```
+## Get involved
 
-Try it!
-
-```shell
-steampipe query
-> .inspect cloudformation
-```
-
-Further reading:
-
-- [Writing plugins](https://steampipe.io/docs/develop/writing-plugins)
-- [Writing your first table](https://steampipe.io/docs/develop/writing-your-first-table)
-
-## Contributing
-
-Please see the [contribution guidelines](https://github.com/turbot/steampipe/blob/main/CONTRIBUTING.md) and our [code of conduct](https://github.com/turbot/steampipe/blob/main/CODE_OF_CONDUCT.md). All contributions are subject to the [Apache 2.0 open source license](https://github.com/turbot/steampipe-plugin-cloudformation/blob/main/LICENSE).
-
-`help wanted` issues:
-
-- [Steampipe](https://github.com/turbot/steampipe/labels/help%20wanted)
-- [CloudFormation Plugin](https://github.com/turbot/steampipe-plugin-cloudformation/labels/help%20wanted)
+- Open source: https://github.com/turbot/steampipe-plugin-cloudformation
+- Community: [Slack Channel](https://steampipe.io/community/join)
