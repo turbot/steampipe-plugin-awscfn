@@ -6,7 +6,7 @@ brand_color: "#008000"
 display_name: "CloudFormation"
 short_name: "cloudformation"
 description: "Steampipe plugin to query data from CloudFormation template files."
-og_description: "Query Terraform files with SQL! Open source CLI. No DB required."
+og_description: "Query CloudFormation template files with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/cloudformation-social-graphic.png"
 ---
 
@@ -71,7 +71,7 @@ from
 
 ### Install
 
-Download and install the latest Terraform plugin:
+Download and install the latest CloudFormation plugin:
 
 ```bash
 steampipe plugin install cloudformation

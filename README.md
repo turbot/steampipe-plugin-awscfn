@@ -25,7 +25,7 @@ Run steampipe:
 steampipe query
 ```
 
-Query all resources in your Terraform files:
+Query all resources in your CloudFormation template files:
 
 ```sql
 select
