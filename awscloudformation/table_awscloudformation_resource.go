@@ -1,4 +1,4 @@
-package cloudformation
+package awscloudformation
 
 import (
 	"bytes"
@@ -12,12 +12,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func tableCloudformationResource(ctx context.Context) *plugin.Table {
+func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "cloudformation_resource",
+		Name:        "awscloudformation_resource",
 		Description: "Cloudformation resource information",
 		List: &plugin.ListConfig{
-			Hydrate:    listCloudformationResources,
+			Hydrate:    listAWSCloudFormationResources,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
 		},
 		Columns: []*plugin.Column{
@@ -80,7 +80,7 @@ func tableCloudformationResource(ctx context.Context) *plugin.Table {
 	}
 }
 
-type cloudformationResource struct {
+type awsCloudFormationResource struct {
 	Name                string
 	StartLine           int
 	Type                string
@@ -98,7 +98,7 @@ type templateStruct struct {
 	Resources map[string]interface{} `cty:"Resources"`
 }
 
-func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// #1 - Path via qual
 	// If the path was requested through qualifier then match it exactly. Globs
 	// are not supported in this context since the output value for the column
@@ -120,7 +120,7 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
 
@@ -137,14 +137,14 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 		} else {
 			err = json.Unmarshal(b, &result)
 			if err != nil {
-				plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
 		}
 
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
-			plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "template_format_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
 			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
 		}
 
@@ -154,7 +154,7 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 		decoder := yaml.NewDecoder(r)
 		err = decoder.Decode(&root)
 		if err != nil {
-			plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "parse_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse file: %v", err)
 		}
 		var rows Rows
@@ -165,8 +165,8 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 
 			// Return error, if Resources map has missing Type and Properties defined
 			if data["Type"] == nil || data["Properties"] == nil {
-				plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "invalid_resource_map_error", err, "path", path)
-				return nil, fmt.Errorf("'Resources' map has missing 'Type' or 'Properties' attribute, path: %s, resource: %s", path, k)
+				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
+				return nil, fmt.Errorf("Template format error: Every Resources object must contain a Type and Properties member. File: %s, Resource: %s", path, k)
 			}
 
 			var lineNo int
@@ -175,7 +175,7 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 					lineNo = r.StartLine
 				}
 			}
-			d.StreamListItem(ctx, cloudformationResource{
+			d.StreamListItem(ctx, awsCloudFormationResource{
 				Name:                k,
 				StartLine:           lineNo,
 				Type:                data["Type"].(string),

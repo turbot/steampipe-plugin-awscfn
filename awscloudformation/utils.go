@@ -1,4 +1,4 @@
-package cloudformation
+package awscloudformation
 
 import (
 	"context"
@@ -15,13 +15,13 @@ import (
 )
 
 func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error) {
-	cloudformationConfig := GetConfig(p)
-	if cloudformationConfig.Paths == nil {
-		return nil, errors.New("paths must be configured to query JSON files")
+	awsCloudFormationConfig := GetConfig(p)
+	if awsCloudFormationConfig.Paths == nil {
+		return nil, errors.New("paths must be configured")
 	}
 
 	var matches []string
-	for _, i := range cloudformationConfig.Paths {
+	for _, i := range awsCloudFormationConfig.Paths {
 		// Check to resolve ~ to home dir
 		if strings.HasPrefix(i, "~") {
 			// File system context

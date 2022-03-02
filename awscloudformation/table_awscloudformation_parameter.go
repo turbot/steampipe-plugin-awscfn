@@ -1,4 +1,4 @@
-package cloudformation
+package awscloudformation
 
 import (
 	"bytes"
@@ -12,12 +12,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func tableCloudformationParameter(ctx context.Context) *plugin.Table {
+func tableAWSCloudFormationParameter(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "cloudformation_parameter",
+		Name:        "awscloudformation_parameter",
 		Description: "Cloudformation parameter information",
 		List: &plugin.ListConfig{
-			Hydrate:    listCloudformationParameters,
+			Hydrate:    listAWSCloudFormationParameters,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
 		},
 		Columns: []*plugin.Column{
@@ -95,7 +95,7 @@ func tableCloudformationParameter(ctx context.Context) *plugin.Table {
 	}
 }
 
-type cloudformationParameter struct {
+type awsCloudFormationParameter struct {
 	Name                  string
 	Type                  string
 	Default               interface{}
@@ -114,10 +114,10 @@ type cloudformationParameter struct {
 
 type parametersStruct struct {
 	Parameters map[string]interface{} `cty:"Parameters"`
-	Resources map[string]interface{} `cty:"Resources"`
+	Resources  map[string]interface{} `cty:"Resources"`
 }
 
-func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAWSCloudFormationParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// #1 - Path via qual
 	// If the path was requested through qualifier then match it exactly. Globs
 	// are not supported in this context since the output value for the column
@@ -139,7 +139,7 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
 
@@ -156,14 +156,14 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 		} else {
 			err = json.Unmarshal(b, &result)
 			if err != nil {
-				plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
 		}
 
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
-			plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "template_format_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "template_format_error", err, "path", path)
 			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
 		}
 
@@ -173,7 +173,7 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 		decoder := yaml.NewDecoder(r)
 		err = decoder.Decode(&root)
 		if err != nil {
-			plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "parse_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "parse_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse file: %v", err)
 		}
 		var rows Rows
@@ -184,7 +184,7 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 
 			// Return error, if Parameters map has missing Type defined
 			if data["Type"] == nil {
-				plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "template_format_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "template_format_error", err, "path", path)
 				return nil, fmt.Errorf("Template format error: Every Parameters object must contain a Type member with non-null value. File: %s", path)
 			}
 
@@ -194,7 +194,7 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 					lineNo = r.StartLine
 				}
 			}
-			d.StreamListItem(ctx, cloudformationParameter{
+			d.StreamListItem(ctx, awsCloudFormationParameter{
 				Name:                  k,
 				Type:                  data["Type"].(string),
 				Default:               data["Default"],

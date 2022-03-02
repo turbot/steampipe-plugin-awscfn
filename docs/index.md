@@ -1,22 +1,22 @@
 ---
 organization: Turbot
 category: ["software development"]
-icon_url: "/images/plugins/turbot/cloudformation.svg"
+icon_url: "/images/plugins/turbot/awscloudformation.svg"
 brand_color: "#008000"
-display_name: "CloudFormation"
-short_name: "cloudformation"
-description: "Steampipe plugin to query data from CloudFormation template files."
-og_description: "Query CloudFormation template files with SQL! Open source CLI. No DB required."
-og_image: "/images/plugins/turbot/cloudformation-social-graphic.png"
+display_name: "AWS CloudFormation"
+short_name: "awscloudformation"
+description: "Steampipe plugin to query data from AWS CloudFormation template files."
+og_description: "Query AWS CloudFormation template files with SQL! Open source CLI. No DB required."
+og_image: "/images/plugins/turbot/awscloudformation-social-graphic.png"
 ---
 
-# CloudFormation + Steampipe
+# AWS CloudFormation + Steampipe
 
-A CloudFormation template file is used to declare resources, variables, modules, and more.
+An AWS CloudFormation template file is used to declare resources, variables, modules, and more.
 
 [Steampipe](https://steampipe.io) is an open source CLI to instantly query data using SQL.
 
-Query all resources in your CloudFormation files:
+Query all resources in your AWS CloudFormation files:
 
 ```sql
 select
@@ -24,11 +24,11 @@ select
   type,
   jsonb_pretty(properties) as resource_properties
 from
-  cloudformation_resource;
+  awscloudformation_resource;
 ```
 
 ```sh
-> select name, type, jsonb_pretty(arguments) as args from cloudformation_resource;
+> select name, type, jsonb_pretty(arguments) as args from awscloudformation_resource;
 +-----------------+----------------------+---------------------------------------------+
 | name            | type                 | resource_properties                         |
 +-----------------+----------------------+---------------------------------------------+
@@ -65,16 +65,16 @@ from
 
 ## Documentation
 
-- **[Table definitions & examples →](/plugins/turbot/cloudformation/tables)**
+- **[Table definitions & examples →](/plugins/turbot/awscloudformation/tables)**
 
 ## Get started
 
 ### Install
 
-Download and install the latest CloudFormation plugin:
+Download and install the latest AWS CloudFormation plugin:
 
 ```bash
-steampipe plugin install cloudformation
+steampipe plugin install awscloudformation
 ```
 
 ### Credentials
@@ -83,11 +83,11 @@ No credentials are required.
 
 ### Configuration
 
-Installing the latest cloudformation plugin will create a config file (`~/.steampipe/config/cloudformation.spc`) with a single connection named `cloudformation`:
+Installing the latest awscloudformation plugin will create a config file (`~/.steampipe/config/awscloudformation.spc`) with a single connection named `awscloudformation`:
 
 ```hcl
-connection "cloudformation" {
-  plugin = "cloudformation"
+connection "awscloudformation" {
+  plugin = "awscloudformation"
 
   # Paths is a list of locations to search for CloudFormation template files
   # All paths are resolved relative to the current working directory (CWD)
@@ -109,9 +109,9 @@ connection "cloudformation" {
 }
 ```
 
-- `paths` - A list of directory paths to search for CloudFormation template files. Paths are resolved relative to the current working directory. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+- `paths` - A list of directory paths to search for AWS CloudFormation template files. Paths are resolved relative to the current working directory. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
 
 ## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-cloudformation
+- Open source: https://github.com/turbot/steampipe-plugin-awscloudformation
 - Community: [Slack Channel](https://steampipe.io/community/join)

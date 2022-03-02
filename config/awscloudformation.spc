@@ -1,5 +1,5 @@
-connection "cloudformation" {
-  plugin = "cloudformation"
+connection "awscloudformation" {
+  plugin = "awscloudformation"
 
   # Paths is a list of locations to search for CloudFormation template files
   # All paths are resolved relative to the current working directory (CWD)

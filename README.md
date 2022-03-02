@@ -1,23 +1,23 @@
-![image](https://hub.steampipe.io/images/plugins/turbot/cloudformation-social-graphic.png)
+![image](https://hub.steampipe.io/images/plugins/turbot/awscloudformation-social-graphic.png)
 
-# CloudFormation Plugin for Steampipe
+# AWS CloudFormation Plugin for Steampipe
 
-Use SQL to query data from CloudFormation template files.
+Use SQL to query data from AWS CloudFormation template files.
 
-- **[Get started →](https://hub.steampipe.io/plugins/turbot/cloudformation)**
-- Documentation: [Table definitions & examples](https://hub.steampipe.io/plugins/turbot/cloudformation/tables)
+- **[Get started →](https://hub.steampipe.io/plugins/turbot/awscloudformation)**
+- Documentation: [Table definitions & examples](https://hub.steampipe.io/plugins/turbot/awscloudformation/tables)
 - Community: [Slack Channel](https://steampipe.io/community/join)
-- Get involved: [Issues](https://github.com/turbot/steampipe-plugin-cloudformation/issues)
+- Get involved: [Issues](https://github.com/turbot/steampipe-plugin-awscloudformation/issues)
 
 ## Quick start
 
 Install the plugin with [Steampipe](https://steampipe.io):
 
 ```shell
-steampipe plugin install cloudformation
+steampipe plugin install awscloudformation
 ```
 
-Configure your [config file](https://hub.steampipe.io/plugins/turbot/cloudformation#configuration) to include directories with CloudFormation template files. If no directory is specified, the current working directory will be used.
+Configure your [config file](https://hub.steampipe.io/plugins/turbot/awscloudformation#configuration) to include directories with AWS CloudFormation template files. If no directory is specified, the current working directory will be used.
 
 Run steampipe:
 
@@ -25,7 +25,7 @@ Run steampipe:
 steampipe query
 ```
 
-Query all resources in your CloudFormation template files:
+Query all resources in your AWS CloudFormation template files:
 
 ```sql
 select
@@ -82,8 +82,8 @@ Prerequisites:
 Clone:
 
 ```sh
-git clone https://github.com/turbot/steampipe-plugin-cloudformation.git
-cd steampipe-plugin-cloudformation
+git clone https://github.com/turbot/steampipe-plugin-awscloudformation.git
+cd steampipe-plugin-awscloudformation
 ```
 
 Build, which automatically installs the new version to your `~/.steampipe/plugins` directory:
@@ -96,14 +96,14 @@ Configure the plugin:
 
 ```shell
 cp config/* ~/.steampipe/config
-vi ~/.steampipe/config/cloudformation.spc
+vi ~/.steampipe/config/awscloudformation.spc
 ```
 
 Try it!
 
 ```shell
 steampipe query
-> .inspect cloudformation
+> .inspect awscloudformation
 ```
 
 Further reading:
@@ -113,9 +113,9 @@ Further reading:
 
 ## Contributing
 
-Please see the [contribution guidelines](https://github.com/turbot/steampipe/blob/main/CONTRIBUTING.md) and our [code of conduct](https://github.com/turbot/steampipe/blob/main/CODE_OF_CONDUCT.md). All contributions are subject to the [Apache 2.0 open source license](https://github.com/turbot/steampipe-plugin-cloudformation/blob/main/LICENSE).
+Please see the [contribution guidelines](https://github.com/turbot/steampipe/blob/main/CONTRIBUTING.md) and our [code of conduct](https://github.com/turbot/steampipe/blob/main/CODE_OF_CONDUCT.md). All contributions are subject to the [Apache 2.0 open source license](https://github.com/turbot/steampipe-plugin-awscloudformation/blob/main/LICENSE).
 
 `help wanted` issues:
 
 - [Steampipe](https://github.com/turbot/steampipe/labels/help%20wanted)
-- [CloudFormation Plugin](https://github.com/turbot/steampipe-plugin-cloudformation/labels/help%20wanted)
+- [AWS CloudFormation Plugin](https://github.com/turbot/steampipe-plugin-awscloudformation/labels/help%20wanted)

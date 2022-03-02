@@ -1,4 +1,4 @@
-# Table: cloudformation_resource
+# Table: awscloudformation_resource
 
 Each resource block describes one or more AWS resources that you want to include in the stack, such as Amazon EC2 instances, DynamoDB tables, or Amazon S3 buckets.
 
@@ -13,7 +13,7 @@ select
   properties,
   path
 from
-  cloudformation_resource;
+  awscloudformation_resource;
 ```
 
 ### List AWS IAM users
@@ -25,7 +25,7 @@ select
   properties,
   path
 from
-  cloudformation_resource
+  awscloudformation_resource
 where
   type = 'AWS::IAM::User';
 ```
@@ -37,7 +37,7 @@ select
   name,
   path
 from
-  cloudformation_resource
+  awscloudformation_resource
 where
   type = 'AWS::CloudTrail::Trail'
   and properties -> 'KMSKeyId' is null;

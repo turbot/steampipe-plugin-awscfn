@@ -1,4 +1,4 @@
-package cloudformation
+package awscloudformation
 
 import (
 	"bytes"
@@ -12,12 +12,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func tableCloudformationMapping(ctx context.Context) *plugin.Table {
+func tableAWSCloudFormationMapping(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "cloudformation_mapping",
+		Name:        "awscloudformation_mapping",
 		Description: "Cloudformation mapping information",
 		List: &plugin.ListConfig{
-			Hydrate:    listCloudformationMappings,
+			Hydrate:    listAWSCloudFormationMappings,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
 		},
 		Columns: []*plugin.Column{
@@ -50,7 +50,7 @@ func tableCloudformationMapping(ctx context.Context) *plugin.Table {
 	}
 }
 
-type cloudformationMapping struct {
+type awsCloudFormationMapping struct {
 	Name      string
 	Key       string
 	Value     interface{}
@@ -63,7 +63,7 @@ type MappingsStruct struct {
 	Resources map[string]interface{} `cty:"Resources"`
 }
 
-func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// #1 - Path via qual
 	// If the path was requested through qualifier then match it exactly. Globs
 	// are not supported in this context since the output value for the column
@@ -85,7 +85,7 @@ func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plu
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("cloudformation_mapping.listCloudformationMappings", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
 
@@ -102,14 +102,14 @@ func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plu
 		} else {
 			err = json.Unmarshal(b, &result)
 			if err != nil {
-				plugin.Logger(ctx).Error("cloudformation_mapping.listCloudformationMappings", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
 		}
 
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
-			plugin.Logger(ctx).Error("cloudformation_mapping.listCloudformationMappings", "template_format_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "template_format_error", err, "path", path)
 			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
 		}
 
@@ -119,7 +119,7 @@ func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plu
 		decoder := yaml.NewDecoder(r)
 		err = decoder.Decode(&root)
 		if err != nil {
-			plugin.Logger(ctx).Error("cloudformation_mapping.listCloudformationMappings", "parse_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse file: %v", err)
 		}
 		var rows Rows
@@ -135,7 +135,7 @@ func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plu
 			}
 
 			for mapKey, mapValue := range data {
-				d.StreamListItem(ctx, cloudformationMapping{
+				d.StreamListItem(ctx, awsCloudFormationMapping{
 					Name:      k,
 					Key:       mapKey,
 					Value:     mapValue,
