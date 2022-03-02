@@ -142,6 +142,12 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 			}
 		}
 
+		// Fail if no Resources attribute defined in template file
+		if result.Resources == nil {
+			plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "template_format_error", err, "path", path)
+			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
+		}
+
 		// Decode file contents
 		var root yaml.Node
 		r := bytes.NewReader(content)
@@ -156,6 +162,13 @@ func listCloudformationResources(ctx context.Context, d *plugin.QueryData, h *pl
 
 		for k, v := range result.Resources {
 			data := v.(map[string]interface{})
+
+			// Return error, if Resources map has missing Type and Properties defined
+			if data["Type"] == nil || data["Properties"] == nil {
+				plugin.Logger(ctx).Error("cloudformation_resource.listCloudformationResources", "invalid_resource_map_error", err, "path", path)
+				return nil, fmt.Errorf("'Resources' map has missing 'Type' or 'Properties' attribute, path: %s, resource: %s", path, k)
+			}
+
 			var lineNo int
 			for _, r := range rows {
 				if r.Name == k {

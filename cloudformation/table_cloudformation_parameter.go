@@ -114,6 +114,7 @@ type cloudformationParameter struct {
 
 type parametersStruct struct {
 	Parameters map[string]interface{} `cty:"Parameters"`
+	Resources map[string]interface{} `cty:"Resources"`
 }
 
 func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -160,6 +161,12 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 			}
 		}
 
+		// Fail if no Resources attribute defined in template file
+		if result.Resources == nil {
+			plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "template_format_error", err, "path", path)
+			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
+		}
+
 		// Decode file contents
 		var root yaml.Node
 		r := bytes.NewReader(content)
@@ -174,6 +181,13 @@ func listCloudformationParameters(ctx context.Context, d *plugin.QueryData, h *p
 
 		for k, v := range result.Parameters {
 			data := v.(map[string]interface{})
+
+			// Return error, if Parameters map has missing Type defined
+			if data["Type"] == nil {
+				plugin.Logger(ctx).Error("cloudformation_parameter.listCloudformationParameters", "template_format_error", err, "path", path)
+				return nil, fmt.Errorf("Template format error: Every Parameters object must contain a Type member with non-null value. File: %s", path)
+			}
+
 			var lineNo int
 			for _, r := range rows {
 				if r.Name == k {

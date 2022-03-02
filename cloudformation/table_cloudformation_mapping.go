@@ -59,7 +59,8 @@ type cloudformationMapping struct {
 }
 
 type MappingsStruct struct {
-	Mappings map[string]interface{} `cty:"Mappings"`
+	Mappings  map[string]interface{} `cty:"Mappings"`
+	Resources map[string]interface{} `cty:"Resources"`
 }
 
 func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -104,6 +105,12 @@ func listCloudformationMappings(ctx context.Context, d *plugin.QueryData, h *plu
 				plugin.Logger(ctx).Error("cloudformation_mapping.listCloudformationMappings", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
+		}
+
+		// Fail if no Resources attribute defined in template file
+		if result.Resources == nil {
+			plugin.Logger(ctx).Error("cloudformation_mapping.listCloudformationMappings", "template_format_error", err, "path", path)
+			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
 		}
 
 		// Decode file contents

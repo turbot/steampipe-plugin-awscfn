@@ -65,7 +65,8 @@ type cloudformationOutput struct {
 }
 
 type OutputStruct struct {
-	Outputs map[string]interface{} `cty:"Outputs"`
+	Outputs   map[string]interface{} `cty:"Outputs"`
+	Resources map[string]interface{} `cty:"Resources"`
 }
 
 func listCloudformationOutputs(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -112,6 +113,12 @@ func listCloudformationOutputs(ctx context.Context, d *plugin.QueryData, h *plug
 			}
 		}
 
+		// Fail if no Resources attribute defined in template file
+		if result.Resources == nil {
+			plugin.Logger(ctx).Error("cloudformation_output.listCloudformationOutputs", "template_format_error", err, "path", path)
+			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
+		}
+
 		// Decode file contents
 		var root yaml.Node
 		r := bytes.NewReader(content)
@@ -126,6 +133,13 @@ func listCloudformationOutputs(ctx context.Context, d *plugin.QueryData, h *plug
 
 		for k, v := range result.Outputs {
 			data := v.(map[string]interface{})
+
+			// Return error, if Outputs map has missing Value defined
+			if data["Value"] == nil {
+				plugin.Logger(ctx).Error("cloudformation_output.listCloudformationOutputs", "template_format_error", err, "path", path)
+				return nil, fmt.Errorf("Template format error: Every Outputs member must contain a Value object with non-null value. File: %s", path)
+			}
+
 			var lineNo int
 			for _, r := range rows {
 				if r.Name == k {
