@@ -163,10 +163,17 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		for k, v := range result.Resources {
 			data := v.(map[string]interface{})
 
-			// Return error, if Resources map has missing Type and Properties defined
-			if data["Type"] == nil || data["Properties"] == nil {
+			// Return error, if Resources map has missing Type defined
+			if data["Type"] == nil {
 				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
-				return nil, fmt.Errorf("Template format error: Every Resources object must contain a Type and Properties member. File: %s, Resource: %s", path, k)
+				return nil, fmt.Errorf("Template format error: Every Resources object must contain a Type member. File: %s, Resource: %s", path, k)
+			}
+
+			// Return error if Properties defined with no value, or null
+			_, isPresent := data["Properties"]
+			if isPresent && data["Properties"] == nil {
+				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
+				return nil, fmt.Errorf("[/Resources/%s/Properties] 'null' values are not allowed in templates. File: %s", k, path)
 			}
 
 			var lineNo int

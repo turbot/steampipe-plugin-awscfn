@@ -29,7 +29,7 @@ func tableAWSCloudFormationOutput(ctx context.Context) *plugin.Table {
 			{
 				Name:        "value",
 				Description: "The value of the property returned by the aws cloudformation describe-stacks command. The value of an output can include literals, parameter references, pseudo-parameters, a mapping value, or intrinsic functions.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "description",
