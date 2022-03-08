@@ -114,7 +114,7 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName s
 		if len(prefix) == 2 && prefix[0] == searchObjectName {
 			row := Row{
 				Name:      prefix[1],
-				StartLine: tree.Line,
+				StartLine: (tree.Line - 1),
 			}
 			*rows = append(*rows, row)
 		}
@@ -130,4 +130,169 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName s
 		}
 	case yaml.ScalarNode:
 	}
+}
+
+// used for loading included files
+type Fragment struct {
+	content *yaml.Node
+}
+
+func (f *Fragment) UnmarshalYAML(value *yaml.Node) error {
+	var err error
+	// process includes in fragments
+	f.content, err = resolveGetAtt(value)
+	return err
+}
+
+type IncludeProcessor struct {
+	target interface{}
+}
+
+func (i *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
+	resolved, err := resolveGetAtt(value)
+	if err != nil {
+		return err
+	}
+	return resolved.Decode(i.target)
+}
+
+func resolveGetAtt(node *yaml.Node) (*yaml.Node, error) {
+	switch node.Tag {
+	case "!Base64":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Base64: %v", node.Value)), &f)
+		return f.content, err
+	case "!Cidr":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Cidr: %v", node.Value)), &f)
+		return f.content, err
+	case "!FindInMap":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::FindInMap: %v", node.Value)), &f)
+		return f.content, err
+	case "!GetAtt":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::GetAtt: %v", node.Value)), &f)
+		return f.content, err
+	case "!GetAZs":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::GetAZs: %v", node.Value)), &f)
+		return f.content, err
+	case "!ImportValue":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::ImportValue:: %v", node.Value)), &f)
+		return f.content, err
+	case "!Join":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Join: %v", node.Value)), &f)
+		return f.content, err
+	case "!Select":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Select: %v", node.Value)), &f)
+		return f.content, err
+	case "!Split":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Split: %v", node.Value)), &f)
+		return f.content, err
+	case "!Sub":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Sub: %v", node.Value)), &f)
+		return f.content, err
+	case "!Transform":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Transform: %v", node.Value)), &f)
+		return f.content, err
+	case "!Ref":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Ref: %v", node.Value)), &f)
+		return f.content, err
+	case "!And":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::And: %v", node.Value)), &f)
+		return f.content, err
+	case "!Equals":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Equals: %v", node.Value)), &f)
+		return f.content, err
+	case "!If":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::If: %v", node.Value)), &f)
+		return f.content, err
+	case "!Not":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Not: %v", node.Value)), &f)
+		return f.content, err
+	case "!Or":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Or: %v", node.Value)), &f)
+		return f.content, err
+	case "!Condition":
+		if node.Kind != yaml.ScalarNode {
+			break
+		}
+		var f Fragment
+		err := yaml.Unmarshal([]byte(fmt.Sprintf("Condition: %v", node.Value)), &f)
+		return f.content, err
+	}
+	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
+		var err error
+		for i := range node.Content {
+			node.Content[i], err = resolveGetAtt(node.Content[i])
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return node, nil
 }

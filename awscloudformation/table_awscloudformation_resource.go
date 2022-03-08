@@ -126,7 +126,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 
 		// Parse file contents
 		var body interface{}
-		if err := yaml.Unmarshal(content, &body); err != nil {
+		if err := yaml.Unmarshal(content, &IncludeProcessor{&body}); err != nil {
 			panic(err)
 		}
 		body = convert(body)
