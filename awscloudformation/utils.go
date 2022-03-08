@@ -184,6 +184,9 @@ func resolveCustomTags(node *yaml.Node) (*yaml.Node, error) {
 			break
 		}
 		var f Fragment
+		if strings.Contains(node.Value, ".") {
+			node.Value = fmt.Sprintf("%s", strings.Split(node.Value, "."))
+		}
 		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::GetAtt: %v", node.Value)), &f)
 		return f.content, err
 	case "!GetAZs":
