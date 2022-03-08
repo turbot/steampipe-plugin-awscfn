@@ -32,7 +32,7 @@ func tableAWSCloudFormationParameter(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "default",
+				Name:        "default_value",
 				Description: "A value of the appropriate type for the template to use if no value is specified when a stack is created. If you define constraints for the parameter, you must specify a value that adheres to those constraints.",
 				Type:        proto.ColumnType_STRING,
 			},
@@ -98,7 +98,7 @@ func tableAWSCloudFormationParameter(ctx context.Context) *plugin.Table {
 type awsCloudFormationParameter struct {
 	Name                  string
 	Type                  string
-	Default               interface{}
+	DefaultValue          interface{}
 	Description           interface{}
 	AllowedPattern        interface{}
 	AllowedValues         interface{}
@@ -197,7 +197,7 @@ func listAWSCloudFormationParameters(ctx context.Context, d *plugin.QueryData, h
 			d.StreamListItem(ctx, awsCloudFormationParameter{
 				Name:                  k,
 				Type:                  data["Type"].(string),
-				Default:               data["Default"],
+				DefaultValue:          data["Default"],
 				Description:           data["Description"],
 				AllowedPattern:        data["AllowedPattern"],
 				AllowedValues:         data["AllowedValues"],

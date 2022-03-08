@@ -1,6 +1,6 @@
-# Table: awscloudformation_resource
+# Table: awscloudformation_parameter
 
-Each resource block describes one or more AWS resources that you want to include in the stack, such as Amazon EC2 instances, DynamoDB tables, or Amazon S3 buckets.
+Parameters enable you to input custom values to your template each time you create or update a stack.
 
 ## Examples
 
@@ -10,37 +10,10 @@ Each resource block describes one or more AWS resources that you want to include
 select
   name,
   type,
-  properties,
+  default_value,
   path
 from
-  awscloudformation_resource;
-```
-
-### List AWS IAM users
-
-```sql
-select
-  name,
-  type,
-  properties,
-  path
-from
-  awscloudformation_resource
-where
-  type = 'AWS::IAM::User';
-```
-
-### List AWS CloudTrail trails that are not encrypted
-
-```sql
-select
-  name,
-  path
-from
-  awscloudformation_resource
-where
-  type = 'AWS::CloudTrail::Trail'
-  and properties -> 'KMSKeyId' is null;
+  awscloudformation_parameter;
 ```
 
 ### Get custom input value for S3 bucket
@@ -83,4 +56,18 @@ where
 +-------------------+-----------------+--------------------------+---------------+
 | DevBucket         | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket |
 +-------------------+-----------------+--------------------------+---------------+
+```
+
+### List parameters with no default value configured
+
+```sql
+select
+  name,
+  type,
+  description,
+  path
+from
+  awscloudformation_parameter
+where
+  default_value is null;
 ```
