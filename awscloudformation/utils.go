@@ -140,7 +140,7 @@ type Fragment struct {
 func (f *Fragment) UnmarshalYAML(value *yaml.Node) error {
 	var err error
 	// process includes in fragments
-	f.content, err = resolveGetAtt(value)
+	f.content, err = resolveCustomTags(value)
 	return err
 }
 
@@ -149,14 +149,14 @@ type IncludeProcessor struct {
 }
 
 func (i *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
-	resolved, err := resolveGetAtt(value)
+	resolved, err := resolveCustomTags(value)
 	if err != nil {
 		return err
 	}
 	return resolved.Decode(i.target)
 }
 
-func resolveGetAtt(node *yaml.Node) (*yaml.Node, error) {
+func resolveCustomTags(node *yaml.Node) (*yaml.Node, error) {
 	switch node.Tag {
 	case "!Base64":
 		if node.Kind != yaml.ScalarNode {
@@ -288,7 +288,7 @@ func resolveGetAtt(node *yaml.Node) (*yaml.Node, error) {
 	if node.Kind == yaml.SequenceNode || node.Kind == yaml.MappingNode {
 		var err error
 		for i := range node.Content {
-			node.Content[i], err = resolveGetAtt(node.Content[i])
+			node.Content[i], err = resolveCustomTags(node.Content[i])
 			if err != nil {
 				return nil, err
 			}
