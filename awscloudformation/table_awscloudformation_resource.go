@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -34,6 +35,11 @@ func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 			{
 				Name:        "properties",
 				Description: "Specifies the resource properties.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "condition",
+				Description: "Specifies the resource conditions.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -86,6 +92,7 @@ type awsCloudFormationResource struct {
 	Type                string
 	Path                string
 	Properties          interface{}
+	Condition           interface{}
 	CreationPolicy      interface{}
 	DeletionPolicy      interface{}
 	DependsOn           interface{}
@@ -123,6 +130,8 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
+		content = bytes.ReplaceAll(content, []byte("!If"), []byte(fmt.Sprintf("\n%sFn::If:", strings.Repeat(" ", 8))))
+		content = bytes.ReplaceAll(content, []byte("!Equals"), []byte(fmt.Sprintf("\n%sFn::Equals:", strings.Repeat(" ", 8))))
 
 		// Parse file contents
 		var body interface{}
@@ -188,6 +197,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 				Type:                data["Type"].(string),
 				Path:                path,
 				Properties:          data["Properties"],
+				Condition:           data["Condition"],
 				CreationPolicy:      data["CreationPolicy"],
 				DeletionPolicy:      data["DeletionPolicy"],
 				DependsOn:           data["DependsOn"],

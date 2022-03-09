@@ -245,41 +245,6 @@ func resolveCustomTags(node *yaml.Node) (*yaml.Node, error) {
 		var f Fragment
 		err := yaml.Unmarshal([]byte(fmt.Sprintf("Ref: %v", node.Value)), &f)
 		return f.content, err
-	case "!And":
-		if node.Kind != yaml.ScalarNode {
-			break
-		}
-		var f Fragment
-		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::And: %v", node.Value)), &f)
-		return f.content, err
-	case "!Equals":
-		if node.Kind != yaml.ScalarNode {
-			break
-		}
-		var f Fragment
-		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Equals: %v", node.Value)), &f)
-		return f.content, err
-	case "!If":
-		if node.Kind != yaml.ScalarNode {
-			break
-		}
-		var f Fragment
-		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::If: %v", node.Value)), &f)
-		return f.content, err
-	case "!Not":
-		if node.Kind != yaml.ScalarNode {
-			break
-		}
-		var f Fragment
-		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Not: %v", node.Value)), &f)
-		return f.content, err
-	case "!Or":
-		if node.Kind != yaml.ScalarNode {
-			break
-		}
-		var f Fragment
-		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Or: %v", node.Value)), &f)
-		return f.content, err
 	case "!Condition":
 		if node.Kind != yaml.ScalarNode {
 			break
