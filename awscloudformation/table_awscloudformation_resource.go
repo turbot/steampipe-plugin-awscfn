@@ -40,7 +40,7 @@ func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 			{
 				Name:        "condition",
 				Description: "Specifies the resource conditions.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "creation_policy",
