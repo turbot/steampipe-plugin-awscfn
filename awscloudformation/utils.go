@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// List all files as per configured paths
 func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error) {
 	awsCloudFormationConfig := GetConfig(p)
 	if awsCloudFormationConfig.Paths == nil {
@@ -114,7 +115,7 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName s
 		if len(prefix) == 2 && prefix[0] == searchObjectName {
 			row := Row{
 				Name:      prefix[1],
-				StartLine: (tree.Line - 1),
+				StartLine: tree.Line,
 			}
 			*rows = append(*rows, row)
 		}
@@ -132,14 +133,12 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName s
 	}
 }
 
-// used for loading included files
 type Fragment struct {
 	content *yaml.Node
 }
 
 func (f *Fragment) UnmarshalYAML(value *yaml.Node) error {
 	var err error
-	// process includes in fragments
 	f.content, err = resolveCustomTags(value)
 	return err
 }
@@ -156,6 +155,7 @@ func (i *IncludeProcessor) UnmarshalYAML(value *yaml.Node) error {
 	return resolved.Decode(i.target)
 }
 
+// resolveCustomTags preserves YAML short tags while parsing
 func resolveCustomTags(node *yaml.Node) (*yaml.Node, error) {
 	switch node.Tag {
 	case "!Base64":

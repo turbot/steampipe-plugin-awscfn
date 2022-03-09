@@ -130,11 +130,11 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
-		content = bytes.ReplaceAll(content, []byte("!If"), []byte(fmt.Sprintf("\n%sFn::If:", strings.Repeat(" ", 8))))
-		content = bytes.ReplaceAll(content, []byte("!Equals"), []byte(fmt.Sprintf("\n%sFn::Equals:", strings.Repeat(" ", 8))))
 
 		// Parse file contents
 		var body interface{}
+		content = bytes.ReplaceAll(content, []byte("!If"), []byte(fmt.Sprintf("\n%sFn::If:", strings.Repeat(" ", 8))))
+		content = bytes.ReplaceAll(content, []byte("!Equals"), []byte(fmt.Sprintf("\n%sFn::Equals:", strings.Repeat(" ", 8))))
 		if err := yaml.Unmarshal(content, &IncludeProcessor{&body}); err != nil {
 			panic(err)
 		}
