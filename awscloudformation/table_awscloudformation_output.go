@@ -116,7 +116,7 @@ func listAWSCloudFormationOutputs(ctx context.Context, d *plugin.QueryData, h *p
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
 			plugin.Logger(ctx).Error("awscloudformation_output.listAWSCloudFormationOutputs", "template_format_error", err, "path", path)
-			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
+			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: At least one Resources member must be defined", path)
 		}
 
 		// Decode file contents
@@ -137,7 +137,7 @@ func listAWSCloudFormationOutputs(ctx context.Context, d *plugin.QueryData, h *p
 			// Return error, if Outputs map has missing Value defined
 			if data["Value"] == nil {
 				plugin.Logger(ctx).Error("awscloudformation_output.listAWSCloudFormationOutputs", "template_format_error", err, "path", path)
-				return nil, fmt.Errorf("Template format error: Every Outputs member must contain a Value object with non-null value. File: %s", path)
+				return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: Every Outputs member must contain a Value object with non-null value", path)
 			}
 
 			var lineNo int

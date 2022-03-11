@@ -164,7 +164,7 @@ func listAWSCloudFormationParameters(ctx context.Context, d *plugin.QueryData, h
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
 			plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "template_format_error", err, "path", path)
-			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
+			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: At least one Resources member must be defined", path)
 		}
 
 		// Decode file contents
@@ -185,7 +185,7 @@ func listAWSCloudFormationParameters(ctx context.Context, d *plugin.QueryData, h
 			// Return error, if Parameters map has missing Type defined
 			if data["Type"] == nil {
 				plugin.Logger(ctx).Error("awscloudformation_parameter.listAWSCloudFormationParameters", "template_format_error", err, "path", path)
-				return nil, fmt.Errorf("Template format error: Every Parameters object must contain a Type member with non-null value. File: %s", path)
+				return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: Every Parameters object must contain a Type member with non-null value", path)
 			}
 
 			var lineNo int

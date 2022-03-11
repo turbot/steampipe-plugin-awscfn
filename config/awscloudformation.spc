@@ -17,5 +17,5 @@ connection "awscloudformation" {
   # the CWD will be matched, which may cause errors if incompatible file types exist
 
   # Defaults to CWD
-  paths = ["*.template"]
+  paths = ["*.template", "*.yaml", "*.yml", "*.json"]
 }

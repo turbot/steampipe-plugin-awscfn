@@ -110,7 +110,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
 			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "template_format_error", err, "path", path)
-			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
+			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: At least one Resources member must be defined", path)
 		}
 
 		// Decode file contents

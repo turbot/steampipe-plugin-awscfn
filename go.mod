@@ -3,6 +3,7 @@ module github.com/turbot/steampipe-plugin-awscloudformation
 go 1.17
 
 require (
+	github.com/awslabs/goformation/v6 v6.0.1
 	github.com/bmatcuk/doublestar v1.3.4
 	github.com/turbot/steampipe-plugin-sdk v1.8.3
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
@@ -36,16 +37,18 @@ require (
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/sanathkr/go-yaml v0.0.0-20170819195128-ed9d249f429b // indirect
+	github.com/sanathkr/yaml v0.0.0-20170819201035-0056894fa522 // indirect
 	github.com/sethvargo/go-retry v0.1.0 // indirect
 	github.com/stevenle/topsort v0.0.0-20130922064739-8130c1d7596b // indirect
 	github.com/tkrajina/go-reflector v0.5.4 // indirect
 	github.com/turbot/go-kit v0.3.0 // indirect
 	github.com/zclconf/go-cty v1.8.2 // indirect
-	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
-	golang.org/x/sys v0.0.0-20211102061401-a2f17f7b995c // indirect
-	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/grpc v1.41.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/yaml.v2 v2.2.3 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

@@ -65,22 +65,18 @@ Resources:
 
 ```sql
 select
-  r.name as resource_map_name,
-  r.type as resource_type,
-  r.properties ->> 'BucketName' as bucket_reference,
-  p.default_value as refered_value
+  name as resource_map_name,
+  type as resource_type,
+  properties ->> 'BucketName' as calculated_value,
+  literal_value ->> 'BucketName' as bucket_reference
 from
-  awscloudformation_resource as r,
-  awscloudformation_parameter as p
-where
-  p.name = properties -> 'BucketName' ->> 'Ref'
-  and r.type = 'AWS::S3::Bucket';
+  awscloudformation_resource;
 ```
 
 ```sh
-+-------------------+-----------------+--------------------------+---------------+
-| resource_map_name | resource_type   | bucket_reference         | refered_value |
-+-------------------+-----------------+--------------------------+---------------+
-| DevBucket         | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket |
-+-------------------+-----------------+--------------------------+---------------+
++-------------------+-----------------+--------------------------+------------------+
+| resource_map_name | resource_type   | bucket_reference         | calculated_value |
++-------------------+-----------------+--------------------------+------------------+
+| DevBucket         | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket    |
++-------------------+-----------------+--------------------------+------------------+
 ```

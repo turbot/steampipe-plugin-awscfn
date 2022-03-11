@@ -1,6 +1,7 @@
 package awscloudformation
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -172,13 +173,6 @@ func resolveCustomTags(node *yaml.Node) (*yaml.Node, error) {
 		var f Fragment
 		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::Cidr: %v", node.Value)), &f)
 		return f.content, err
-	case "!FindInMap":
-		if node.Kind != yaml.ScalarNode {
-			break
-		}
-		var f Fragment
-		err := yaml.Unmarshal([]byte(fmt.Sprintf("Fn::FindInMap: %v", node.Value)), &f)
-		return f.content, err
 	case "!GetAtt":
 		if node.Kind != yaml.ScalarNode {
 			break
@@ -263,4 +257,11 @@ func resolveCustomTags(node *yaml.Node) (*yaml.Node, error) {
 		}
 	}
 	return node, nil
+}
+
+func formatFileContent(content []byte) []byte {
+	content = bytes.ReplaceAll(content, []byte("!If"), []byte(fmt.Sprintf("\n%sFn::If:", strings.Repeat(" ", 8))))
+	content = bytes.ReplaceAll(content, []byte("!Equals"), []byte(fmt.Sprintf("\n%sFn::Equals:", strings.Repeat(" ", 8))))
+	content = bytes.ReplaceAll(content, []byte("!FindInMap"), []byte(fmt.Sprintf("\n%sFn::FindInMap:", strings.Repeat(" ", 8))))
+	return content
 }

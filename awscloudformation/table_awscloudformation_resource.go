@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strings"
 
+	"github.com/awslabs/goformation/v6"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"gopkg.in/yaml.v3"
@@ -16,7 +16,7 @@ import (
 func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "awscloudformation_resource",
-		Description: "Cloudformation resource information",
+		Description: "Cloudformation resource information.",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationResources,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
@@ -33,8 +33,13 @@ func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "literal_value",
+				Description: "Specifies the resource properties defined in the template.",
+				Type:        proto.ColumnType_JSON,
+			},
+			{
 				Name:        "properties",
-				Description: "Specifies the resource properties.",
+				Description: "Specifies the resource properties with calculated values as per given condition or parameter reference.",
 				Type:        proto.ColumnType_JSON,
 			},
 			{
@@ -87,22 +92,27 @@ func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 }
 
 type awsCloudFormationResource struct {
-	Name                string
-	StartLine           int
-	Type                string
-	Path                string
-	Properties          interface{}
-	Condition           interface{}
-	CreationPolicy      interface{}
-	DeletionPolicy      interface{}
-	DependsOn           interface{}
-	Metadata            interface{}
-	UpdatePolicy        interface{}
-	UpdateReplacePolicy interface{}
+	Name         string
+	StartLine    int
+	Path         string
+	LiteralValue interface{}
+	templateStruct
+}
+
+type resourceStruct struct {
+	Resources map[string]interface{} `cty:"Resources"`
 }
 
 type templateStruct struct {
-	Resources map[string]interface{} `cty:"Resources"`
+	Type                string      `json:"Type"`
+	Properties          interface{} `json:"Properties"`
+	Condition           interface{} `json:"Condition"`
+	CreationPolicy      interface{} `json:"CreationPolicy"`
+	DeletionPolicy      interface{} `json:"DeletionPolicy"`
+	DependsOn           interface{} `json:"DependsOn"`
+	Metadata            interface{} `json:"Metadata"`
+	UpdatePolicy        interface{} `json:"UpdatePolicy"`
+	UpdateReplacePolicy interface{} `json:"UpdateReplacePolicy"`
 }
 
 func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -124,37 +134,23 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	for _, path := range paths {
+		template, err := goformation.Open(path)
+		if err != nil {
+			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
+			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: %v", path, err)
+		}
+
+		// Fail if no Resources attribute defined in template file
+		if template.Resources == nil {
+			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
+			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: At least one Resources member must be defined", path)
+		}
+
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
-		}
-
-		// Parse file contents
-		var body interface{}
-		content = bytes.ReplaceAll(content, []byte("!If"), []byte(fmt.Sprintf("\n%sFn::If:", strings.Repeat(" ", 8))))
-		content = bytes.ReplaceAll(content, []byte("!Equals"), []byte(fmt.Sprintf("\n%sFn::Equals:", strings.Repeat(" ", 8))))
-		if err := yaml.Unmarshal(content, &IncludeProcessor{&body}); err != nil {
-			panic(err)
-		}
-		body = convert(body)
-
-		var result templateStruct
-		if b, err := json.Marshal(body); err != nil {
-			panic(err)
-		} else {
-			err = json.Unmarshal(b, &result)
-			if err != nil {
-				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
-				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
-			}
-		}
-
-		// Fail if no Resources attribute defined in template file
-		if result.Resources == nil {
-			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
-			return nil, fmt.Errorf("Template format error: At least one Resources member must be defined. File: %s", path)
 		}
 
 		// Decode file contents
@@ -164,25 +160,50 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		err = decoder.Decode(&root)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
-			return nil, fmt.Errorf("failed to parse file: %v", err)
+			return nil, fmt.Errorf("failed to decode file content: %v", err)
 		}
 		var rows Rows
 		treeToList(&root, []string{}, &rows, "Resources")
 
-		for k, v := range result.Resources {
-			data := v.(map[string]interface{})
+		// Parse file contents
+		var body interface{}
+		content = formatFileContent(content)
+		if err := yaml.Unmarshal(content, &IncludeProcessor{&body}); err != nil {
+			panic(err)
+		}
+		body = convert(body)
 
+		var resourceData resourceStruct
+		if b, err := json.Marshal(body); err != nil {
+			panic(err)
+		} else {
+			err = json.Unmarshal(b, &resourceData)
+			if err != nil {
+				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
+			}
+		}
+
+		for k, v := range template.Resources {
 			// Return error, if Resources map has missing Type defined
-			if data["Type"] == nil {
+			if v.AWSCloudFormationType() == "" {
 				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
-				return nil, fmt.Errorf("Template format error: Every Resources object must contain a Type member. File: %s, Resource: %s", path, k)
+				return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: Every Resources object must contain a Type member. Resource: %s", path, k)
 			}
 
-			// Return error if Properties defined with no value, or null
-			_, isPresent := data["Properties"]
-			if isPresent && data["Properties"] == nil {
-				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
-				return nil, fmt.Errorf("[/Resources/%s/Properties] 'null' values are not allowed in templates. File: %s", k, path)
+			reqBodyBytes := new(bytes.Buffer)
+			err := json.NewEncoder(reqBodyBytes).Encode(v)
+			if err != nil {
+				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+				return nil, fmt.Errorf("failed to encode file content %s: %v", path, err)
+			}
+
+			byteData := reqBodyBytes.String()
+			var result templateStruct
+			err = json.Unmarshal([]byte(byteData), &result)
+			if err != nil {
+				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+				return nil, fmt.Errorf("failed to unmarshal resource content: %v", err)
 			}
 
 			var lineNo int
@@ -191,20 +212,15 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 					lineNo = r.StartLine
 				}
 			}
-			d.StreamListItem(ctx, awsCloudFormationResource{
-				Name:                k,
-				StartLine:           lineNo,
-				Type:                data["Type"].(string),
-				Path:                path,
-				Properties:          data["Properties"],
-				Condition:           data["Condition"],
-				CreationPolicy:      data["CreationPolicy"],
-				DeletionPolicy:      data["DeletionPolicy"],
-				DependsOn:           data["DependsOn"],
-				Metadata:            data["Metadata"],
-				UpdatePolicy:        data["UpdatePolicy"],
-				UpdateReplacePolicy: data["UpdateReplacePolicy"],
-			})
+
+			var propertyLiteralValue interface{}
+			for mapKey, val := range resourceData.Resources {
+				data := val.(map[string]interface{})
+				if k == mapKey {
+					propertyLiteralValue = data["Properties"]
+				}
+			}
+			d.StreamListItem(ctx, awsCloudFormationResource{k, lineNo, path, propertyLiteralValue, result})
 		}
 	}
 
