@@ -1,4 +1,4 @@
-package awscloudformation
+package awscfn
 
 import (
 	"bytes"
@@ -17,13 +17,13 @@ import (
 
 // List all files as per configured paths
 func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error) {
-	awsCloudFormationConfig := GetConfig(p)
-	if awsCloudFormationConfig.Paths == nil {
+	awscfnConfig := GetConfig(p)
+	if awscfnConfig.Paths == nil {
 		return nil, errors.New("paths must be configured")
 	}
 
 	var matches []string
-	for _, i := range awsCloudFormationConfig.Paths {
+	for _, i := range awscfnConfig.Paths {
 		// Check to resolve ~ to home dir
 		if strings.HasPrefix(i, "~") {
 			// File system context

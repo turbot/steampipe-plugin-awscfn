@@ -1,4 +1,4 @@
-package awscloudformation
+package awscfn
 
 import (
 	"bytes"
@@ -13,9 +13,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
+func tableAWSCFNResource(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "awscloudformation_resource",
+		Name:        "awscfn_resource",
 		Description: "Cloudformation resource information.",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationResources,
@@ -91,7 +91,7 @@ func tableAWSCloudFormationResource(ctx context.Context) *plugin.Table {
 	}
 }
 
-type awsCloudFormationResource struct {
+type awsCFNResource struct {
 	Name         string
 	StartLine    int
 	Path         string
@@ -136,20 +136,20 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 	for _, path := range paths {
 		template, err := goformation.Open(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: %v", path, err)
 		}
 
 		// Fail if no Resources attribute defined in template file
 		if template.Resources == nil {
-			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: At least one Resources member must be defined", path)
 		}
 
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
 
@@ -159,7 +159,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		decoder := yaml.NewDecoder(r)
 		err = decoder.Decode(&root)
 		if err != nil {
-			plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
 			return nil, fmt.Errorf("failed to decode file content: %v", err)
 		}
 		var rows Rows
@@ -179,7 +179,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		} else {
 			err = json.Unmarshal(b, &resourceData)
 			if err != nil {
-				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
 		}
@@ -187,14 +187,14 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		for k, v := range template.Resources {
 			// Return error, if Resources map has missing Type defined
 			if v.AWSCloudFormationType() == "" {
-				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "template_format_error", err, "path", path)
 				return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: Every Resources object must contain a Type member. Resource: %s", path, k)
 			}
 
 			reqBodyBytes := new(bytes.Buffer)
 			err := json.NewEncoder(reqBodyBytes).Encode(v)
 			if err != nil {
-				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to encode file content %s: %v", path, err)
 			}
 
@@ -202,7 +202,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 			var result templateStruct
 			err = json.Unmarshal([]byte(byteData), &result)
 			if err != nil {
-				plugin.Logger(ctx).Error("awscloudformation_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal resource content: %v", err)
 			}
 
@@ -220,7 +220,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 					propertyLiteralValue = data["Properties"]
 				}
 			}
-			d.StreamListItem(ctx, awsCloudFormationResource{k, lineNo, path, propertyLiteralValue, result})
+			d.StreamListItem(ctx, awsCFNResource{k, lineNo, path, propertyLiteralValue, result})
 		}
 	}
 

@@ -1,4 +1,4 @@
-package awscloudformation
+package awscfn
 
 import (
 	"bytes"
@@ -12,10 +12,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func tableAWSCloudFormationMapping(ctx context.Context) *plugin.Table {
+func tableAWSCFNMapping(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "awscloudformation_mapping",
-		Description: "Cloudformation mapping information",
+		Name:        "awscfn_mapping",
+		Description: "Cloudformation mapping information.",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationMappings,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
@@ -50,7 +50,7 @@ func tableAWSCloudFormationMapping(ctx context.Context) *plugin.Table {
 	}
 }
 
-type awsCloudFormationMapping struct {
+type awsCFNMapping struct {
 	Name      string
 	Key       string
 	Value     interface{}
@@ -85,7 +85,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		// Read files
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
 		}
 
@@ -102,14 +102,14 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		} else {
 			err = json.Unmarshal(b, &result)
 			if err != nil {
-				plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
+				plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
 				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
 			}
 		}
 
 		// Fail if no Resources attribute defined in template file
 		if result.Resources == nil {
-			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "template_format_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "template_format_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: Template format error: At least one Resources member must be defined", path)
 		}
 
@@ -119,7 +119,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		decoder := yaml.NewDecoder(r)
 		err = decoder.Decode(&root)
 		if err != nil {
-			plugin.Logger(ctx).Error("awscloudformation_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
 			return nil, fmt.Errorf("failed to parse file: %v", err)
 		}
 		var rows Rows
@@ -135,7 +135,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 			}
 
 			for mapKey, mapValue := range data {
-				d.StreamListItem(ctx, awsCloudFormationMapping{
+				d.StreamListItem(ctx, awsCFNMapping{
 					Name:      k,
 					Key:       mapKey,
 					Value:     mapValue,

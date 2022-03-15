@@ -1,4 +1,4 @@
-module github.com/turbot/steampipe-plugin-awscloudformation
+module github.com/turbot/steampipe-plugin-awscfn
 
 go 1.17
 

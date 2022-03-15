@@ -1,4 +1,4 @@
-# Table: awscloudformation_output
+# Table: awscfn_output
 
 The Outputs section declares output values that you can import into other stacks (to create cross-stack references), return in response (to describe stack calls), or view on the AWS CloudFormation console. For example, you can output the S3 bucket name for a stack to make the bucket easier to find.
 
@@ -13,7 +13,7 @@ select
   value,
   path
 from
-  awscloudformation_output;
+  awscfn_output;
 ```
 
 ### List sensitive outputs
@@ -26,7 +26,7 @@ with output_table as (
     split_part(substring(value from '\w*Ref:*\w*'), ':', 2) as parameter_reference,
     path
   from
-    awscloudformation_output
+    awscfn_output
   where
     value like '%Ref:%'
 )
@@ -36,7 +36,7 @@ select
   o.path
 from
   output_table as o
-  left join awscloudformation_parameter as p on p.name = o.parameter_reference and o.path = p.path
+  left join awscfn_parameter as p on p.name = o.parameter_reference and o.path = p.path
 where
   p.no_echo;
 ```

@@ -1,2 +1,2 @@
 install:
-	go build -o ~/.steampipe/plugins/hub.steampipe.io/plugins/turbot/awscloudformation@latest/steampipe-plugin-awscloudformation.plugin *.go
+	go build -o ~/.steampipe/plugins/hub.steampipe.io/plugins/turbot/awscfn@latest/steampipe-plugin-awscfn.plugin *.go

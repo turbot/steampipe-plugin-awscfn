@@ -1,13 +1,13 @@
 ---
 organization: Turbot
 category: ["software development"]
-icon_url: "/images/plugins/turbot/awscloudformation.svg"
-brand_color: "#008000"
+icon_url: "/images/plugins/turbot/awscfn.svg"
+brand_color: "#FF9900"
 display_name: "AWS CloudFormation"
-short_name: "awscloudformation"
+short_name: "awscfn"
 description: "Steampipe plugin to query data from AWS CloudFormation template files."
 og_description: "Query AWS CloudFormation template files with SQL! Open source CLI. No DB required."
-og_image: "/images/plugins/turbot/awscloudformation-social-graphic.png"
+og_image: "/images/plugins/turbot/awscfn-social-graphic.png"
 ---
 
 # AWS CloudFormation + Steampipe
@@ -24,48 +24,29 @@ select
   type,
   jsonb_pretty(properties) as resource_properties
 from
-  awscloudformation_resource;
+  awscfn_resource;
 ```
 
 ```sh
-> select name, type, jsonb_pretty(arguments) as args from awscloudformation_resource;
-+-----------------+----------------------+---------------------------------------------+
-| name            | type                 | resource_properties                         |
-+-----------------+----------------------+---------------------------------------------+
-| myDynamoDBTable | AWS::DynamoDB::Table | {                                           |
-|                 |                      |     "KeySchema": [                          |
-|                 |                      |         {                                   |
-|                 |                      |             "KeyType": "HASH",              |
-|                 |                      |             "AttributeName": {              |
-|                 |                      |                 "Ref": "HashKeyElementName" |
-|                 |                      |             }                               |
-|                 |                      |         }                                   |
-|                 |                      |     ],                                      |
-|                 |                      |     "AttributeDefinitions": [               |
-|                 |                      |         {                                   |
-|                 |                      |             "AttributeName": {              |
-|                 |                      |                 "Ref": "HashKeyElementName" |
-|                 |                      |             },                              |
-|                 |                      |             "AttributeType": {              |
-|                 |                      |                 "Ref": "HashKeyElementType" |
-|                 |                      |             }                               |
-|                 |                      |         }                                   |
-|                 |                      |     ],                                      |
-|                 |                      |     "ProvisionedThroughput": {              |
-|                 |                      |         "ReadCapacityUnits": {              |
-|                 |                      |             "Ref": "ReadCapacityUnits"      |
-|                 |                      |         },                                  |
-|                 |                      |         "WriteCapacityUnits": {             |
-|                 |                      |             "Ref": "WriteCapacityUnits"     |
-|                 |                      |         }                                   |
-|                 |                      |     }                                       |
-|                 |                      | }                                           |
-+-----------------+----------------------+---------------------------------------------+
+> select name, type, jsonb_pretty(properties) as args from awscfn_resource;
++-----------+-----------------+---------------------------------------+---------------------------------------+
+| name      | type            | jsonb_pretty                          | jsonb_pretty                          |
++-----------+-----------------+---------------------------------------+---------------------------------------+
+| DevBucket | AWS::S3::Bucket | {                                     | {                                     |
+|           |                 |     "BucketName": "TestWebBucket",    |     "BucketName": {                   |
+|           |                 |     "AccessControl": "PublicRead",    |         "Ref": "WebBucketName"        |
+|           |                 |     "WebsiteConfiguration": {         |     },                                |
+|           |                 |         "IndexDocument": "index.html" |     "AccessControl": "PublicRead",    |
+|           |                 |     }                                 |     "WebsiteConfiguration": {         |
+|           |                 | }                                     |         "IndexDocument": "index.html" |
+|           |                 |                                       |     }                                 |
+|           |                 |                                       | }                                     |
++-----------+-----------------+---------------------------------------+---------------------------------------+
 ```
 
 ## Documentation
 
-- **[Table definitions & examples →](/plugins/turbot/awscloudformation/tables)**
+- **[Table definitions & examples →](/plugins/turbot/awscfn/tables)**
 
 ## Get started
 
@@ -74,7 +55,7 @@ from
 Download and install the latest AWS CloudFormation plugin:
 
 ```bash
-steampipe plugin install awscloudformation
+steampipe plugin install awscfn
 ```
 
 ### Credentials
@@ -83,11 +64,11 @@ No credentials are required.
 
 ### Configuration
 
-Installing the latest awscloudformation plugin will create a config file (`~/.steampipe/config/awscloudformation.spc`) with a single connection named `awscloudformation`:
+Installing the latest awscfn plugin will create a config file (`~/.steampipe/config/awscfn.spc`) with a single connection named `awscfn`:
 
 ```hcl
-connection "awscloudformation" {
-  plugin = "awscloudformation"
+connection "awscfn" {
+  plugin = "awscfn"
 
   # Paths is a list of locations to search for CloudFormation template files
   # All paths are resolved relative to the current working directory (CWD)
@@ -113,5 +94,5 @@ connection "awscloudformation" {
 
 ## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-awscloudformation
+- Open source: https://github.com/turbot/steampipe-plugin-awscfn
 - Community: [Slack Channel](https://steampipe.io/community/join)

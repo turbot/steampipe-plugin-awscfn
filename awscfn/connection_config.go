@@ -1,11 +1,11 @@
-package awscloudformation
+package awscfn
 
 import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/plugin/schema"
 )
 
-type awsCloudFormationConfig struct {
+type awscfnConfig struct {
 	Paths []string `cty:"paths"`
 }
 
@@ -17,14 +17,14 @@ var ConfigSchema = map[string]*schema.Attribute{
 }
 
 func ConfigInstance() interface{} {
-	return &awsCloudFormationConfig{}
+	return &awscfnConfig{}
 }
 
 // GetConfig :: retrieve and cast connection config from query data
-func GetConfig(connection *plugin.Connection) awsCloudFormationConfig {
+func GetConfig(connection *plugin.Connection) awscfnConfig {
 	if connection == nil || connection.Config == nil {
-		return awsCloudFormationConfig{}
+		return awscfnConfig{}
 	}
-	config, _ := connection.Config.(awsCloudFormationConfig)
+	config, _ := connection.Config.(awscfnConfig)
 	return config
 }

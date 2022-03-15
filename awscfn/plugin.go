@@ -1,4 +1,4 @@
-package awscloudformation
+package awscfn
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-const pluginName = "steampipe-plugin-awscloudformation"
+const pluginName = "steampipe-plugin-awscfn"
 
-// Plugin creates this (awscloudformation) plugin
+// Plugin creates this (awscfn) plugin
 func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
 		Name:             pluginName,
@@ -19,10 +19,10 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
-			"awscloudformation_mapping":   tableAWSCloudFormationMapping(ctx),
-			"awscloudformation_output":    tableAWSCloudFormationOutput(ctx),
-			"awscloudformation_parameter": tableAWSCloudFormationParameter(ctx),
-			"awscloudformation_resource":  tableAWSCloudFormationResource(ctx),
+			"awscfn_mapping":   tableAWSCFNMapping(ctx),
+			"awscfn_output":    tableAWSCFNOutput(ctx),
+			"awscfn_parameter": tableAWSCFNParameter(ctx),
+			"awscfn_resource":  tableAWSCFNResource(ctx),
 		},
 	}
 
