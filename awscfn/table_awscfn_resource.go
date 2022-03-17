@@ -10,6 +10,7 @@ import (
 	"github.com/awslabs/goformation/v6"
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,9 +34,10 @@ func tableAWSCFNResource(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "literal_value",
+				Name:        "properties_src",
 				Description: "Specifies the resource properties defined in the template.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("LiteralValue"),
 			},
 			{
 				Name:        "properties",

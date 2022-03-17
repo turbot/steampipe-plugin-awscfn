@@ -18,7 +18,7 @@ from
 
 ### Get custom input value for S3 bucket
 
-For instance, a template is defined as following:
+For instance, if a template is defined as:
 
 ```yaml
 Parameters:

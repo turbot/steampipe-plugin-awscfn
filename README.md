@@ -31,26 +31,41 @@ Query all resources in your AWS CloudFormation template files:
 select
   name,
   type,
-  jsonb_pretty(properties) as resource_properties
+  jsonb_pretty(properties) as properties
 from
   awscfn_resource;
 ```
 
 ```sh
-> select name, type, jsonb_pretty(arguments) as args from awscfn_resource;
-+-----------+-----------------+---------------------------------------+---------------------------------------+
-| name      | type            | jsonb_pretty                          | jsonb_pretty                          |
-+-----------+-----------------+---------------------------------------+---------------------------------------+
-| DevBucket | AWS::S3::Bucket | {                                     | {                                     |
-|           |                 |     "BucketName": "TestWebBucket",    |     "BucketName": {                   |
-|           |                 |     "AccessControl": "PublicRead",    |         "Ref": "WebBucketName"        |
-|           |                 |     "WebsiteConfiguration": {         |     },                                |
-|           |                 |         "IndexDocument": "index.html" |     "AccessControl": "PublicRead",    |
-|           |                 |     }                                 |     "WebsiteConfiguration": {         |
-|           |                 | }                                     |         "IndexDocument": "index.html" |
-|           |                 |                                       |     }                                 |
-|           |                 |                                       | }                                     |
-+-----------+-----------------+---------------------------------------+---------------------------------------+
++------------+------------------+---------------------------------------+
+| name       | type             | properties                            |
++------------+------------------+---------------------------------------+
+| CFNUser    | AWS::IAM::User   | {                                     |
+|            |                  |     "Path": "/steampipe/"             |
+|            |                  | }                                     |
+| DevBucket  | AWS::S3::Bucket  | {                                     |
+|            |                  |     "BucketName": "TestWebBucket",    |
+|            |                  |     "AccessControl": "PublicRead",    |
+|            |                  |     "WebsiteConfiguration": {         |
+|            |                  |         "IndexDocument": "index.html" |
+|            |                  |     }                                 |
+|            |                  | }                                     |
+| TestVolume | AWS::EC2::Volume | {                                     |
+|            |                  |     "Iops": 100,                      |
+|            |                  |     "Size": 100,                      |
+|            |                  |     "Tags": [                         |
+|            |                  |         {                             |
+|            |                  |             "Key": "poc",             |
+|            |                  |             "Value": "turbot"         |
+|            |                  |         }                             |
+|            |                  |     ],                                |
+|            |                  |     "Encrypted": false,               |
+|            |                  |     "VolumeType": "io1",              |
+|            |                  |     "AutoEnableIO": false,            |
+|            |                  |     "AvailabilityZone": "",           |
+|            |                  |     "MultiAttachEnabled": false       |
+|            |                  | }                                     |
++------------+------------------+---------------------------------------+
 ```
 
 ## Developing

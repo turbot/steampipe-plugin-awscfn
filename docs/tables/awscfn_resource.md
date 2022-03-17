@@ -45,7 +45,7 @@ where
 
 ### Get custom input value for S3 bucket
 
-For instance, a template is defined as following:
+For instance, if a template is defined as:
 
 ```yaml
 Parameters:
@@ -67,12 +67,13 @@ Resources:
 select
   name as resource_map_name,
   type as resource_type,
-  literal_value ->> 'BucketName' as bucket_reference,
+  properties_src ->> 'BucketName' as bucket_reference,
   properties ->> 'BucketName' as calculated_value
 from
   awscfn_resource
 where
-  path = '/path/to/testBucket.template';
+  path = '/path/to/testBucket.template'
+  and type = 'AWS::S3::Bucket';
 ```
 
 ```sh
