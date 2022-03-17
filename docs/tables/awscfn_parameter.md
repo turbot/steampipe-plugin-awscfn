@@ -40,13 +40,13 @@ Resources:
 select
   r.name as resource_map_name,
   r.type as resource_type,
-  r.properties ->> 'BucketName' as bucket_reference,
+  r.properties_src ->> 'BucketName' as bucket_reference,
   p.default_value as referred_value
 from
   awscfn_resource as r,
   awscfn_parameter as p
 where
-  p.name = properties -> 'BucketName' ->> 'Ref'
+  p.name = properties_src -> 'BucketName' ->> 'Ref'
   and r.type = 'AWS::S3::Bucket';
 ```
 
