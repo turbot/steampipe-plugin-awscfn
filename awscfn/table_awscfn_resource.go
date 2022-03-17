@@ -139,7 +139,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		template, err := goformation.Open(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
-			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: %v", path, err)
+			return nil, fmt.Errorf("failed to parse AWS CloudFormation template from file %s: %w", path, err)
 		}
 
 		// Fail if no Resources attribute defined in template file
@@ -152,7 +152,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
-			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
+			return nil, fmt.Errorf("failed to read file %s: %w", path, err)
 		}
 
 		// Decode file contents
@@ -162,7 +162,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 		err = decoder.Decode(&root)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
-			return nil, fmt.Errorf("failed to decode file content: %v", err)
+			return nil, fmt.Errorf("failed to decode file content: %w", err)
 		}
 		var rows Rows
 		treeToList(&root, []string{}, &rows, "Resources")
@@ -182,7 +182,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 			err = json.Unmarshal(b, &resourceData)
 			if err != nil {
 				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
-				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
+				return nil, fmt.Errorf("failed to unmarshal file content %s: %w", path, err)
 			}
 		}
 
@@ -197,7 +197,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 			err := json.NewEncoder(reqBodyBytes).Encode(v)
 			if err != nil {
 				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
-				return nil, fmt.Errorf("failed to encode file content %s: %v", path, err)
+				return nil, fmt.Errorf("failed to encode file content %s: %w", path, err)
 			}
 
 			byteData := reqBodyBytes.String()
@@ -205,7 +205,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 			err = json.Unmarshal([]byte(byteData), &result)
 			if err != nil {
 				plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "parse_error", err, "path", path)
-				return nil, fmt.Errorf("failed to unmarshal resource content: %v", err)
+				return nil, fmt.Errorf("failed to unmarshal resource content: %w", err)
 			}
 
 			var lineNo int

@@ -86,7 +86,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "file_error", err, "path", path)
-			return nil, fmt.Errorf("failed to read file %s: %v", path, err)
+			return nil, fmt.Errorf("failed to read file %s: %w", path, err)
 		}
 
 		// Parse file contents
@@ -103,7 +103,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 			err = json.Unmarshal(b, &result)
 			if err != nil {
 				plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
-				return nil, fmt.Errorf("failed to unmarshal file content %s: %v", path, err)
+				return nil, fmt.Errorf("failed to unmarshal file content %s: %w", path, err)
 			}
 		}
 
@@ -120,7 +120,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		err = decoder.Decode(&root)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_mapping.listAWSCloudFormationMappings", "parse_error", err, "path", path)
-			return nil, fmt.Errorf("failed to parse file: %v", err)
+			return nil, fmt.Errorf("failed to parse file: %w", err)
 		}
 		var rows Rows
 		treeToList(&root, []string{}, &rows, "Mappings")
