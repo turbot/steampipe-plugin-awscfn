@@ -25,8 +25,9 @@ Mappings:
 
 ```sql
 select
-  name,
+  map,
   key,
+  name,
   value,
   path
 from
@@ -37,28 +38,32 @@ from
 
 ```sql
 select
-  name,
+  map,
   key,
-  value ->> 'HVM64' as hvm64_ami_id,
+  name,
+  value as hvm64_ami_id,
   path
 from
   awscfn_mapping
 where
-  name = 'RegionMap'
-  and key = 'us-east-1';
+  map = 'RegionMap'
+  and key = 'us-east-1'
+  and name = 'HVM64';
 ```
 
 ### Get the region whose HVM64 AMI ID is "ami-0bdb828fd58c52235"
 
 ```sql
 select
-  name,
+  map,
   key,
-  value ->> 'HVM64' as hvm64_ami_id,
+  name,
+  value as hvm64_ami_id,
   path
 from
   awscfn_mapping
 where
-  name = 'RegionMap'
-  and value ->> 'HVM64' = 'ami-0bdb828fd58c52235';
+  map = 'RegionMap'
+  and name = 'HVM64'
+  and value = 'ami-0bdb828fd58c52235';
 ```

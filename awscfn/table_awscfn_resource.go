@@ -17,7 +17,7 @@ import (
 func tableAWSCFNResource(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "awscfn_resource",
-		Description: "Cloudformation resource information.",
+		Description: "CloudFormation resource information.",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationResources,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),

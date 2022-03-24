@@ -15,26 +15,31 @@ import (
 func tableAWSCFNMapping(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "awscfn_mapping",
-		Description: "Cloudformation mapping information.",
+		Description: "CloudFormation mapping information.",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationMappings,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
 		},
 		Columns: []*plugin.Column{
 			{
-				Name:        "name",
-				Description: "Parameter name.",
+				Name:        "map",
+				Description: "Mapping name.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "key",
-				Description: "The data type for the parameter.",
+				Description: "The key name that maps to name-value pairs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "name",
+				Description: "The name from the name-value pair.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "value",
-				Description: "An array containing the list of values allowed for the parameter.",
-				Type:        proto.ColumnType_JSON,
+				Description: "The value from the name-value pair.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "start_line",
@@ -51,9 +56,10 @@ func tableAWSCFNMapping(ctx context.Context) *plugin.Table {
 }
 
 type awsCFNMapping struct {
-	Name      string
+	Map       string
 	Key       string
-	Value     interface{}
+	Name      string
+	Value     string
 	StartLine int
 	Path      string
 }
@@ -127,6 +133,7 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 
 		for k, v := range result.Mappings {
 			data := v.(map[string]interface{})
+			// TODO: Fix line numbers to represent the start of each name-value pair instead of the map
 			var lineNo int
 			for _, r := range rows {
 				if r.Name == k {
@@ -135,13 +142,16 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 			}
 
 			for mapKey, mapValue := range data {
-				d.StreamListItem(ctx, awsCFNMapping{
-					Name:      k,
-					Key:       mapKey,
-					Value:     mapValue,
-					StartLine: lineNo,
-					Path:      path,
-				})
+				for nameKey, nameValue := range mapValue.(map[string]interface{}) {
+					d.StreamListItem(ctx, awsCFNMapping{
+						Map:       k,
+						Key:       mapKey,
+						Name:      nameKey,
+						Value:     nameValue.(string),
+						StartLine: lineNo,
+						Path:      path,
+					})
+				}
 			}
 		}
 	}

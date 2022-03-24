@@ -15,7 +15,7 @@ import (
 func tableAWSCFNParameter(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "awscfn_parameter",
-		Description: "Cloudformation parameter information",
+		Description: "CloudFormation parameter information",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationParameters,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
