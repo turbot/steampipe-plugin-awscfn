@@ -2,9 +2,9 @@
 
 Each resource block describes one or more AWS resources that you want to include in the stack, such as Amazon EC2 instances, DynamoDB tables, or Amazon S3 buckets.
 
-**Note:** Resource properties in AWS CloudFormation template **must** be configured with proper value reference and data types as per [AWS CloudFormation Template](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule-1.html#cfn-ec2-security-group-rule-fromport) documentation; otherwise the column `properties` will return null.
+The `properties_src` column contains the raw resource properties, while the `properties` column uses [AWS' goformation library](https://github.com/awslabs/goformation) to resolve CloudFormation instrinsic functions and references. In some cases, goformation is unable to parse the CloudFormation template or is unable to resolve property values.
 
-For example, This sample [AutoScalingScheduledAction](https://s3.amazonaws.com/cloudformation-templates-us-east-1/AutoScalingScheduledAction.template) template has defined following configuration to create a SecurityGroup resource
+For example, the sample [AutoScalingScheduledAction](https://s3.amazonaws.com/cloudformation-templates-us-east-1/AutoScalingScheduledAction.template) CloudFormation template includes a SecurityGroup resource:
 
 ```json
 "InstanceSecurityGroup": {
@@ -27,7 +27,47 @@ For example, This sample [AutoScalingScheduledAction](https://s3.amazonaws.com/c
 }
 ```
 
-where the properties `FromPort` and `ToPort` values have been defined as **string**. But as per [AWS CloudFormation Template](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule-1.html#cfn-ec2-security-group-rule-fromport) documentation, the value should be of type **integer**.
+Because the `FromPort` and `ToPort` property values are of type `String` (which is valid per CloudFormation), but the [AWS::EC2::SecurityGroup Ingress schema](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule-1.html#cfn-ec2-security-group-rule-fromport) defines their type as `Integer`, goformation is unable to parse the CloudFormation template and `properties` will be returned as `null`:
+
+```sql
+select
+  name,
+  jsonb_pretty(properties_src) as properties_src,
+  properties
+from
+  awscfn_resource
+where
+  name = 'InstanceSecurityGroup';
+```
+
+```sh
++-----------------------+-------------------------------------------------+------------+
+| name                  | properties_src                                  | properties |
++-----------------------+-------------------------------------------------+------------+
+| InstanceSecurityGroup | {                                               | <null>     |
+|                       |     "VpcId": {                                  |            |
+|                       |         "Ref": "VpcId"                          |            |
+|                       |     },                                          |            |
+|                       |     "GroupDescription": "Enable SSH access...", |            |
+|                       |     "SecurityGroupIngress": [                   |            |
+|                       |         {                                       |            |
+|                       |             "CidrIp": {                         |            |
+|                       |                 "Ref": "SSHLocation"            |            |
+|                       |             },                                  |            |
+|                       |             "ToPort": "22",                     |            |
+|                       |             "FromPort": "22",                   |            |
+|                       |             "IpProtocol": "tcp"                 |            |
+|                       |         },                                      |            |
+|                       |         {                                       |            |
+|                       |             "CidrIp": "0.0.0.0/0",              |            |
+|                       |             "ToPort": "80",                     |            |
+|                       |             "FromPort": "80",                   |            |
+|                       |             "IpProtocol": "tcp"                 |            |
+|                       |         }                                       |            |
+|                       |     ]                                           |            |
+|                       | }                                               |            |
++-----------------------+-------------------------------------------------+------------+
+```
 
 ## Examples
 
@@ -38,8 +78,8 @@ select
   name,
   type,
   case
-    when properties is null then properties_src
-    else  properties
+    when properties is not null then properties
+    else properties_src
   end as resource_properties,
   path
 from
@@ -53,8 +93,8 @@ select
   name,
   type,
   case
-    when properties is null then properties_src
-    else  properties
+    when properties is not null then properties
+    else properties_src
   end as resource_properties,
   path
 from
@@ -79,9 +119,9 @@ where
   );
 ```
 
-### Get custom input value for S3 bucket
+### Get S3 bucket BucketName property value
 
-For instance, if a template is defined as:
+For instance, if a CloudFormation template is defined as:
 
 ```yaml
 Parameters:
@@ -103,19 +143,18 @@ Resources:
 select
   name as resource_map_name,
   type as resource_type,
-  properties_src ->> 'BucketName' as bucket_reference,
-  properties ->> 'BucketName' as calculated_value
+  properties_src ->> 'BucketName' as bucket_name_src,
+  default_value as bucket_name
 from
   awscfn_resource
 where
-  path = '/path/to/testBucket.template'
-  and type = 'AWS::S3::Bucket';
+  type = 'AWS::S3::Bucket';
 ```
 
 ```sh
-+-------------------+-----------------+--------------------------+------------------+
-| resource_map_name | resource_type   | bucket_reference         | calculated_value |
-+-------------------+-----------------+--------------------------+------------------+
-| DevBucket         | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket    |
-+-------------------+-----------------+--------------------------+------------------+
++---------------+-----------------+--------------------------+----------------+
+| resource_name | resource_type   | bucket_name_src          | bucket_name    |
++---------------+-----------------+--------------------------+----------------+
+| DevBucket     | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket  |
++---------------+-----------------+--------------------------+----------------+
 ```

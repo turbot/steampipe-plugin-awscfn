@@ -169,7 +169,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 
 		template, err := goformation.Open(path)
 		if err != nil {
-			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
+			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "goformation_file_error", err, "path", path)
 		}
 
 		// Decode file contents

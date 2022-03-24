@@ -16,7 +16,21 @@ from
   awscfn_output;
 ```
 
-### List sensitive outputs
+### List outputs that return an EC2 instance public DNS name
+
+```sql
+select
+  name,
+  value,
+  description,
+  path
+from
+  awscfn_output
+where
+  value like '%Fn::GetAtt:%PublicDnsName%';
+```
+
+### List outputs that show sensitive parameter values
 
 ```sql
 with output_table as (

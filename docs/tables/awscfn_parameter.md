@@ -1,6 +1,6 @@
 # Table: awscfn_parameter
 
-Parameters enable you to input custom values to your template each time you create or update a stack.
+Parameters enable you to input custom values to your CloudFormation template each time you create or update a stack.
 
 ## Examples
 
@@ -16,9 +16,9 @@ from
   awscfn_parameter;
 ```
 
-### Get custom input value for S3 bucket
+### List S3 buckets with BucketName properties that reference a parameter
 
-For instance, if a template is defined as:
+For instance, if a CloudFormation template is defined as:
 
 ```yaml
 Parameters:
@@ -38,10 +38,10 @@ Resources:
 
 ```sql
 select
-  r.name as resource_map_name,
+  r.name as resource_name,
   r.type as resource_type,
-  r.properties_src ->> 'BucketName' as bucket_reference,
-  p.default_value as referred_value
+  r.properties_src ->> 'BucketName' as bucket_name_src,
+  p.default_value as bucket_name
 from
   awscfn_resource as r,
   awscfn_parameter as p
@@ -51,11 +51,11 @@ where
 ```
 
 ```sh
-+-------------------+-----------------+--------------------------+----------------+
-| resource_map_name | resource_type   | bucket_reference         | referred_value |
-+-------------------+-----------------+--------------------------+----------------+
-| DevBucket         | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket  |
-+-------------------+-----------------+--------------------------+----------------+
++---------------+-----------------+--------------------------+----------------+
+| resource_name | resource_type   | bucket_name_src          | bucket_name    |
++---------------+-----------------+--------------------------+----------------+
+| DevBucket     | AWS::S3::Bucket | {"Ref": "WebBucketName"} | TestWebBucket  |
++---------------+-----------------+--------------------------+----------------+
 ```
 
 ### List parameters with no default value configured
