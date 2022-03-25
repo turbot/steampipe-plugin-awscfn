@@ -34,6 +34,22 @@ from
   awscfn_mapping;
 ```
 
+### List all HVM64 AMI IDs
+
+```sql
+select
+  map,
+  key,
+  name,
+  value as hvm64_ami_id,
+  path
+from
+  awscfn_mapping
+where
+  map = 'RegionMap'
+  and name = 'HVM64';
+```
+
 ### Get the HVM64 AMI ID in us-east-1
 
 ```sql
