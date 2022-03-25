@@ -2,7 +2,7 @@
 organization: Turbot
 category: ["software development"]
 icon_url: "/images/plugins/turbot/awscfn.svg"
-brand_color: "#B0084D"
+brand_color: "#FF9900"
 display_name: "AWS CloudFormation"
 short_name: "awscfn"
 description: "Steampipe plugin to query data from AWS CloudFormation template files."
