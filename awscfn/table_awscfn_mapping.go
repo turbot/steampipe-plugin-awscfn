@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 	"gopkg.in/yaml.v3"
 )
 
@@ -40,6 +42,7 @@ func tableAWSCFNMapping(ctx context.Context) *plugin.Table {
 				Name:        "value",
 				Description: "The value from the name-value pair.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(formatValue),
 			},
 			{
 				Name:        "start_line",
@@ -59,7 +62,7 @@ type awsCFNMapping struct {
 	Map       string
 	Key       string
 	Name      string
-	Value     string
+	Value     interface{}
 	StartLine int
 	Path      string
 }
@@ -132,22 +135,32 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		treeToList(&root, []string{}, &rows, "Mappings")
 
 		for k, v := range result.Mappings {
-			data := v.(map[string]interface{})
-			// TODO: Fix line numbers to represent the start of each name-value pair instead of the map
-			var lineNo int
-			for _, r := range rows {
-				if r.Name == k {
-					lineNo = r.StartLine
-				}
-			}
-
-			for mapKey, mapValue := range data {
+			for mapKey, mapValue := range v.(map[string]interface{}) {
 				for nameKey, nameValue := range mapValue.(map[string]interface{}) {
+					var lineNo int
+					for _, r := range rows {
+						if strings.HasPrefix(r.Name, "Mappings.") {
+							// Get line number for matching nameKey
+							// Since same nameKey can be defined in different Mappings,
+							// Check mapKey to avoid fetching incorrect line number
+							var compareKey string
+							splitName := strings.Split(r.Name, ".")
+							if len(splitName) == 4 && k == splitName[1] && mapKey == splitName[2] { // i.e. Mappings.RegionExamples.us-east-1.Examples
+								compareKey = splitName[3]
+							} else if len(splitName) == 5 && k == splitName[1] && mapKey == strings.Join(splitName[2:4], ".") { // Handle InstanceType mapping; i.e. Mappings.AWSInstanceType2Arch.t1.micro.Arch
+								compareKey = splitName[4]
+							}
+							if compareKey == nameKey {
+								lineNo = r.StartLine
+							}
+						}
+					}
+
 					d.StreamListItem(ctx, awsCFNMapping{
 						Map:       k,
 						Key:       mapKey,
 						Name:      nameKey,
-						Value:     nameValue.(string),
+						Value:     nameValue,
 						StartLine: lineNo,
 						Path:      path,
 					})
@@ -157,4 +170,18 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	return nil, nil
+}
+
+func formatValue(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(awsCFNMapping)
+	var val string
+	if data.Value != nil {
+		content, isArray := data.Value.([]interface{})
+		if isArray {
+			val = fmt.Sprintf("%v", content)
+		} else {
+			val = data.Value.(string)
+		}
+	}
+	return val, nil
 }
