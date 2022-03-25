@@ -1,3 +1,11 @@
+## v0.0.2 [2022-03-25]
+
+_Enhancements_
+
+- Added column `map` to the `awscfn_mapping` table
+- The `name` column in the `awscfn_mapping` table now contains the key name from each name-value pair
+- The `value` column in the `awscfn_mapping` table now contains the value from each name-value pair
+
 ## v0.0.1 [2022-03-24]
 
 _What's new?_
