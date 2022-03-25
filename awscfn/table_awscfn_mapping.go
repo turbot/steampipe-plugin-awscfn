@@ -6,35 +6,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
 	"gopkg.in/yaml.v3"
 )
 
 func tableAWSCFNMapping(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "awscfn_mapping",
-		Description: "Cloudformation mapping information.",
+		Description: "CloudFormation mapping information.",
 		List: &plugin.ListConfig{
 			Hydrate:    listAWSCloudFormationMappings,
 			KeyColumns: plugin.OptionalColumns([]string{"path"}),
 		},
 		Columns: []*plugin.Column{
 			{
-				Name:        "name",
-				Description: "Parameter name.",
+				Name:        "map",
+				Description: "Mapping name.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "key",
-				Description: "The data type for the parameter.",
+				Description: "The key name that maps to name-value pairs.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "name",
+				Description: "The name from the name-value pair.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "value",
-				Description: "An array containing the list of values allowed for the parameter.",
-				Type:        proto.ColumnType_JSON,
+				Description: "The value from the name-value pair.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(formatValue),
 			},
 			{
 				Name:        "start_line",
@@ -51,8 +59,9 @@ func tableAWSCFNMapping(ctx context.Context) *plugin.Table {
 }
 
 type awsCFNMapping struct {
-	Name      string
+	Map       string
 	Key       string
+	Name      string
 	Value     interface{}
 	StartLine int
 	Path      string
@@ -126,25 +135,53 @@ func listAWSCloudFormationMappings(ctx context.Context, d *plugin.QueryData, h *
 		treeToList(&root, []string{}, &rows, "Mappings")
 
 		for k, v := range result.Mappings {
-			data := v.(map[string]interface{})
-			var lineNo int
-			for _, r := range rows {
-				if r.Name == k {
-					lineNo = r.StartLine
-				}
-			}
+			for mapKey, mapValue := range v.(map[string]interface{}) {
+				for nameKey, nameValue := range mapValue.(map[string]interface{}) {
+					var lineNo int
+					for _, r := range rows {
+						if strings.HasPrefix(r.Name, "Mappings.") {
+							// Get line number for matching nameKey
+							// Since same nameKey can be defined in different Mappings,
+							// Check mapKey to avoid fetching incorrect line number
+							var compareKey string
+							splitName := strings.Split(r.Name, ".")
+							if len(splitName) == 4 && k == splitName[1] && mapKey == splitName[2] { // i.e. Mappings.RegionExamples.us-east-1.Examples
+								compareKey = splitName[3]
+							} else if len(splitName) == 5 && k == splitName[1] && mapKey == strings.Join(splitName[2:4], ".") { // Handle InstanceType mapping; i.e. Mappings.AWSInstanceType2Arch.t1.micro.Arch
+								compareKey = splitName[4]
+							}
+							if compareKey == nameKey {
+								lineNo = r.StartLine
+							}
+						}
+					}
 
-			for mapKey, mapValue := range data {
-				d.StreamListItem(ctx, awsCFNMapping{
-					Name:      k,
-					Key:       mapKey,
-					Value:     mapValue,
-					StartLine: lineNo,
-					Path:      path,
-				})
+					d.StreamListItem(ctx, awsCFNMapping{
+						Map:       k,
+						Key:       mapKey,
+						Name:      nameKey,
+						Value:     nameValue,
+						StartLine: lineNo,
+						Path:      path,
+					})
+				}
 			}
 		}
 	}
 
 	return nil, nil
+}
+
+func formatValue(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	data := d.HydrateItem.(awsCFNMapping)
+	var val string
+	if data.Value != nil {
+		content, isArray := data.Value.([]interface{})
+		if isArray {
+			val = fmt.Sprintf("%v", content)
+		} else {
+			val = data.Value.(string)
+		}
+	}
+	return val, nil
 }

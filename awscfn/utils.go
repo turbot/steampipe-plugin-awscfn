@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/bmatcuk/doublestar"
@@ -106,11 +105,12 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName s
 			treeToList(v, prefix, rows, searchObjectName)
 		}
 	case yaml.SequenceNode:
-		for i, v := range tree.Content {
-			newKey := make([]string, len(prefix))
-			copy(newKey, prefix)
-			newKey = append(newKey, strconv.Itoa(i))
-			treeToList(v, newKey, rows, searchObjectName)
+		if len(tree.Content) > 0 {
+			row := Row{
+				Name:      strings.Join(prefix, "."),
+				StartLine: tree.Line,
+			}
+			*rows = append(*rows, row)
 		}
 	case yaml.MappingNode:
 		if len(prefix) == 2 && prefix[0] == searchObjectName {
@@ -131,6 +131,13 @@ func treeToList(tree *yaml.Node, prefix []string, rows *Rows, searchObjectName s
 			treeToList(val, newKey, rows, searchObjectName)
 		}
 	case yaml.ScalarNode:
+		if len(prefix) > 0 && prefix[0] == searchObjectName {
+			row := Row{
+				Name:      strings.Join(prefix, "."),
+				StartLine: tree.Line,
+			}
+			*rows = append(*rows, row)
+		}
 	}
 }
 
