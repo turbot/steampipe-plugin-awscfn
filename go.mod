@@ -1,6 +1,6 @@
 module github.com/turbot/steampipe-plugin-awscfn
 
-go 1.17
+go 1.18
 
 require (
 	github.com/awslabs/goformation/v6 v6.0.3
