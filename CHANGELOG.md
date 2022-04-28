@@ -1,3 +1,9 @@
+## v0.1.1 [2022-04-28]
+
+_Bug fixes_
+
+- Fixed the `invalid image` type error when trying to install or update the plugin ([#10](https://github.com/turbot/steampipe-plugin-awscfn/pull/10))
+
 ## v0.1.0 [2022-04-27]
 
 _Enhancements_
