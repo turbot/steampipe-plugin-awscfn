@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/awslabs/goformation/v6"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
@@ -136,7 +136,7 @@ func listAWSCloudFormationResources(ctx context.Context, d *plugin.QueryData, h 
 
 	for _, path := range paths {
 		// Read files
-		content, err := ioutil.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_resource.listAWSCloudFormationResources", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %w", path, err)
