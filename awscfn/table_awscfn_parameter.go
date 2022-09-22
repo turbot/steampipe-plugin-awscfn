@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"gopkg.in/yaml.v3"
 )
 
@@ -125,11 +125,11 @@ func listAWSCloudFormationParameters(ctx context.Context, d *plugin.QueryData, h
 	//
 	// #2 - Path via glob paths in config
 	var paths []string
-	if d.KeyColumnQuals["path"] != nil {
-		paths = []string{d.KeyColumnQuals["path"].GetStringValue()}
+	if d.EqualsQuals["path"] != nil {
+		paths = []string{d.EqualsQuals["path"].GetStringValue()}
 	} else {
 		var err error
-		paths, err = listFilesByPath(ctx, d.Connection)
+		paths, err = listFilesByPath(ctx, d)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +137,7 @@ func listAWSCloudFormationParameters(ctx context.Context, d *plugin.QueryData, h
 
 	for _, path := range paths {
 		// Read files
-		content, err := ioutil.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_parameter.listAWSCloudFormationParameters", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %w", path, err)
