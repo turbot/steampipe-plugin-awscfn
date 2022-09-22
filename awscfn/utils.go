@@ -27,11 +27,8 @@ func listFilesByPath(ctx context.Context, d *plugin.QueryData) ([]string, error)
 		if err != nil {
 			return nil, err
 		}
-		plugin.Logger(ctx).Warn("listFilesByPath", "path", i, "matches", files)
 		matches = append(matches, files...)
 	}
-
-	plugin.Logger(ctx).Warn("listFilesByPath", "matches", matches)
 
 	// Sanitize the matches to likely cloudformation files
 	var fileList []string
