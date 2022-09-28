@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
@@ -89,7 +89,7 @@ func listAWSCloudFormationOutputs(ctx context.Context, d *plugin.QueryData, h *p
 
 	for _, path := range paths {
 		// Read files
-		content, err := ioutil.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			plugin.Logger(ctx).Error("awscfn_output.listAWSCloudFormationOutputs", "file_error", err, "path", path)
 			return nil, fmt.Errorf("failed to read file %s: %w", path, err)
