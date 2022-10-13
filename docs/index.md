@@ -89,23 +89,49 @@ connection "awscfn" {
   # All paths are resolved relative to the current working directory (CWD)
   # Wildcard based searches are supported, including recursive searches
 
-  # For example:
-  #  - "*.template" matches all CloudFormation template files in the CWD
-  #  - "**/*.template" matches all CloudFormation template files in the CWD and all sub-directories
-  #  - "../*.template" matches all CloudFormation template files in the CWD's parent directory
-  #  - "ELB*.template" matches all CloudFormation template files starting with "ELB" in the CWD
-  #  - "/path/to/dir/*.template" matches all CloudFormation template files in a specific directory
-  #  - "/path/to/dir/main.template" matches a specific file
-
-  # If paths includes "*", all files (including non-CloudFormation template files) in
-  # the CWD will be matched, which may cause errors if incompatible file types exist
-
   # Defaults to CWD
   paths = ["*.template", "*.yaml", "*.yml", "*.json"]
 }
 ```
 
 - `paths` - A list of directory paths to search for AWS CloudFormation template files. Paths are resolved relative to the current working directory. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+
+### Setting up paths
+
+The argument `paths` in the config is a list of directory paths, a GitHub repository URL, or a S3 URL to search for AWS CloudFormation template files. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+
+#### Configuring local file paths
+
+You can define a list of local directory paths to search for AWS CloudFormation template files. Paths are resolved relative to the current working directory. For example:
+
+- `*.template` matches all CloudFormation template files in the CWD.
+- `**/*.template` matches all CloudFormation template files in the CWD and all sub-directories.
+- `../*.template` matches all CloudFormation template files in the CWD's parent directory.
+- `ELB*.template` matches all CloudFormation template files starting with "ELB" in the CWD.
+- `/path/to/dir/*.template` matches all CloudFormation template files in a specific directory. For example:
+  - `~/*.template` matches all CloudFormation template files in the home directory.
+  - `~/**/*.template` matches all CloudFormation template files recursively in the home directory.
+- `/path/to/dir/main.template` matches a specific file.
+
+**NOTE:** If paths includes `*`, all files (including non-CloudFormation template files) in the CWD will be matched, which may cause errors if incompatible file types exist.
+
+#### Configuring GitHub URLs
+
+You can define a list of URL as input to search for AWS CloudFormation template files from a variety of protocols. For example:
+
+- `github.com/awslabs/aws-cloudformation-templates//*.template` matches all top-level CloudFormation template files in the specified github repository.
+- `github.com/awslabs/aws-cloudformation-templates//**/*.yaml` matches all CloudFormation template files in the specified github repository and all sub-directories.
+- `github.com/awslabs/aws-cloudformation-templates?ref=fix_7677//**/*.template` matches all CloudFormation template files in the specific tag of github repository.
+
+If you want to download only a specific subdirectory from a downloaded directory, you can specify a subdirectory after a double-slash (`//`).
+
+- `github.com/awslabs/aws-cloudformation-templates//aws/services/ElasticLoadBalancing//*.yaml` matches all CloudFormation template files in the specific folder of a github repository.
+
+#### Configuring S3 URLs
+
+You can also pass a S3 bucket URL to search all CloudFormation template files stored in the specified S3 bucket. For example:
+
+- `s3::https://s3.amazonaws.com/bucket/template_examples//**/*.template` matches all the CloudFormation template files recursively.
 
 ## Get involved
 
