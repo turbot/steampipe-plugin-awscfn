@@ -98,7 +98,22 @@ connection "awscfn" {
 
 ### Setting up paths
 
-The argument `paths` in the config is a list of directory paths, a GitHub repository URL, or a S3 URL to search for AWS CloudFormation template files. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+The argument `paths` in the config is a list of directory paths, a GitHub repository URL, or a S3 URL to search for AWS CloudFormation template files. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory. For example:
+
+```hcl
+connection "awscfn" {
+  plugin = "awscfn"
+
+  paths = [
+    "*.template",
+    "~/*.template",
+    "github.com/awslabs/aws-cloudformation-templates//*.template",
+    "github.com/awslabs/aws-cloudformation-templates//aws/services/ElasticLoadBalancing//*.yaml",
+    "git::https://github.com/awslabs/aws-cloudformation-templates.git//aws/services/ElasticLoadBalancing//*.yaml",
+    "s3::https://demo-integrated-2022.s3.ap-southeast-1.amazonaws.com/template_examples//*.yaml"
+  ]
+}
+```
 
 #### Configuring local file paths
 
@@ -113,6 +128,14 @@ You can define a list of local directory paths to search for AWS CloudFormation 
   - `~/**/*.template` matches all CloudFormation template files recursively in the home directory.
 - `/path/to/dir/main.template` matches a specific file.
 
+```hcl
+connection "awscfn" {
+  plugin = "awscfn"
+
+  paths = [ "*.template", "~/*.template", "/path/to/dir/main.template" ]
+}
+```
+
 **NOTE:** If paths includes `*`, all files (including non-CloudFormation template files) in the CWD will be matched, which may cause errors if incompatible file types exist.
 
 #### Configuring GitHub URLs
@@ -122,16 +145,33 @@ You can define a list of URL as input to search for AWS CloudFormation template 
 - `github.com/awslabs/aws-cloudformation-templates//*.template` matches all top-level CloudFormation template files in the specified github repository.
 - `github.com/awslabs/aws-cloudformation-templates//**/*.yaml` matches all CloudFormation template files in the specified github repository and all sub-directories.
 - `github.com/awslabs/aws-cloudformation-templates?ref=fix_7677//**/*.template` matches all CloudFormation template files in the specific tag of github repository.
+- `git::https://github.com/awslabs/aws-cloudformation-templates.git//aws/services/ElasticLoadBalancing//*.yaml` matches all CloudFormation template files in the given HTTP URL using the Git protocol.
 
 If you want to download only a specific subdirectory from a downloaded directory, you can specify a subdirectory after a double-slash (`//`).
 
 - `github.com/awslabs/aws-cloudformation-templates//aws/services/ElasticLoadBalancing//*.yaml` matches all CloudFormation template files in the specific folder of a github repository.
 
+```hcl
+connection "awscfn" {
+  plugin = "awscfn"
+
+  paths = [ "github.com/awslabs/aws-cloudformation-templates//*.template", "github.com/awslabs/aws-cloudformation-templates//aws/services/ElasticLoadBalancing//*.yaml", "git::https://github.com/awslabs/aws-cloudformation-templates.git//aws/services/ElasticLoadBalancing//*.yaml" ]
+}
+```
+
 #### Configuring S3 URLs
 
 You can also pass a S3 bucket URL to search all CloudFormation template files stored in the specified S3 bucket. For example:
 
-- `s3::https://s3.amazonaws.com/bucket/template_examples//**/*.template` matches all the CloudFormation template files recursively.
+- `s3::https://demo-integrated-2022.s3.ap-southeast-1.amazonaws.com/template_examples//*.yaml` matches all the CloudFormation template files recursively.
+
+```hcl
+connection "awscfn" {
+  plugin = "awscfn"
+
+  paths = [ "s3::https://demo-integrated-2022.s3.ap-southeast-1.amazonaws.com/template_examples//*.yaml" ]
+}
+```
 
 ## Get involved
 
