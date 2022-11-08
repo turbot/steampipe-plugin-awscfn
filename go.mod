@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/awslabs/goformation/v6 v6.0.3
 	github.com/bmatcuk/doublestar v1.3.4
-	github.com/turbot/steampipe-plugin-sdk/v4 v4.1.7
+	github.com/turbot/steampipe-plugin-sdk/v4 v4.1.8
 	gopkg.in/yaml.v3 v3.0.1
 )
 
