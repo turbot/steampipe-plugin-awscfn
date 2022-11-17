@@ -2,8 +2,9 @@ connection "awscfn" {
   plugin = "awscfn"
 
   # Paths is a list of locations to search for CloudFormation template files
-  # All paths are resolved relative to the current working directory (CWD)
+  # Paths can be configured with a local directory, a remote Git repository URL, or an S3 bucket URL
   # Wildcard based searches are supported, including recursive searches
+  # Local paths are resolved relative to the current working directory (CWD)
 
   # For example:
   #  - "*.template" matches all CloudFormation template files in the CWD

@@ -6,58 +6,31 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/bmatcuk/doublestar"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"gopkg.in/yaml.v3"
 )
 
 // List all files as per configured paths
-func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error) {
-	awscfnConfig := GetConfig(p)
-	if awscfnConfig.Paths == nil {
+func listFilesByPath(ctx context.Context, d *plugin.QueryData) ([]string, error) {
+	awscfnConfig := GetConfig(d.Connection)
+	paths := awscfnConfig.Paths
+	if paths == nil {
 		return nil, errors.New("paths must be configured")
 	}
 
 	var matches []string
-	for _, i := range awscfnConfig.Paths {
-		// Check to resolve ~ to home dir
-		if strings.HasPrefix(i, "~") {
-			// File system context
-			home, err := os.UserHomeDir()
-			if err != nil {
-				plugin.Logger(ctx).Error("utils.listFilesByPath", "os.UserHomeDir error. ~ will not be expanded in paths", err, "path", i)
-				return nil, fmt.Errorf("os.UserHomeDir error. ~ will not be expanded in paths")
-			}
-
-			// Resolve ~ to home dir
-			if home != "" {
-				if i == "~" {
-					i = home
-				} else if strings.HasPrefix(i, "~/") {
-					i = filepath.Join(home, i[2:])
-				}
-			}
-		}
-
-		// Get full path
-		fullPath, err := filepath.Abs(i)
+	for _, i := range paths {
+		// List the files in the given source directory
+		files, err := d.GetSourceFiles(i)
 		if err != nil {
-			plugin.Logger(ctx).Error("utils.listFilesByPath", "invlaid path", err, "path", i)
-			return nil, fmt.Errorf("failed to fetch absolute path: %s", i)
+			return nil, err
 		}
-
-		// Expand globs
-		iMatches, err := doublestar.Glob(fullPath)
-		if err != nil {
-			plugin.Logger(ctx).Error("utils.listFilesByPath", "path is not a valid glob", err, "path", i)
-			return matches, fmt.Errorf("path is not a valid glob: %s", i)
-		}
-		matches = append(matches, iMatches...)
+		matches = append(matches, files...)
 	}
 
+	// Sanitize the matches to likely cloudformation files
 	var fileList []string
 	for _, i := range matches {
 		// Check if file or directory
@@ -69,6 +42,18 @@ func listFilesByPath(ctx context.Context, p *plugin.Connection) ([]string, error
 
 		// Ignore directories
 		if fileInfo.IsDir() {
+			continue
+		}
+
+		hit := false
+		for _, j := range paths {
+			if i == j {
+				hit = true
+				break
+			}
+		}
+		if hit {
+			fileList = append(fileList, i)
 			continue
 		}
 		fileList = append(fileList, i)
