@@ -122,7 +122,6 @@ Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and suppor
 connection "awscfn" {
   plugin = "awscfn"
 
-  ###### REFACTOR THE EXAMPLES
   paths = [
     "*.template",
     "~/*.template",
