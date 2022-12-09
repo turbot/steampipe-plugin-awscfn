@@ -1,3 +1,9 @@
+## v0.3.1 [2022-12-09]
+
+_Bug fixes_
+
+- Cleanup examples in `docs/index.md`.
+
 ## v0.3.0 [2022-11-17]
 
 _What's new?_
