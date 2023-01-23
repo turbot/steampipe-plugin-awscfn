@@ -5,9 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
+	filehelpers "github.com/turbot/go-kit/files"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"gopkg.in/yaml.v3"
 )
@@ -30,30 +30,12 @@ func listFilesByPath(ctx context.Context, d *plugin.QueryData) ([]string, error)
 		matches = append(matches, files...)
 	}
 
-	// Sanitize the matches to likely cloudformation files
+	// Sanitize the matches to ignore the directories
 	var fileList []string
 	for _, i := range matches {
-		// Check if file or directory
-		fileInfo, err := os.Stat(i)
-		if err != nil {
-			plugin.Logger(ctx).Error("utils.listFilesByPath", "error getting file info", err, "path", i)
-			return nil, err
-		}
 
 		// Ignore directories
-		if fileInfo.IsDir() {
-			continue
-		}
-
-		hit := false
-		for _, j := range paths {
-			if i == j {
-				hit = true
-				break
-			}
-		}
-		if hit {
-			fileList = append(fileList, i)
+		if filehelpers.DirectoryExists(i) {
 			continue
 		}
 		fileList = append(fileList, i)
