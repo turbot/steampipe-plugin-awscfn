@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/awslabs/goformation/v6 v6.0.3
-	github.com/turbot/go-kit v0.6.0
+	github.com/turbot/go-kit v0.7.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.5.0
 	gopkg.in/yaml.v3 v3.0.1
 )
