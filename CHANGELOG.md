@@ -2,8 +2,8 @@
 
 _Dependencies_
 
-- Upgraded to [steampipe-plugin-sdk v5.6.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v561-2023-09-29) with support for rate limiters.
-- Recompiled plugin with Go version `1.21`.
+- Upgraded to [steampipe-plugin-sdk v5.6.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v561-2023-09-29) with support for rate limiters. ([#33](https://github.com/turbot/steampipe-plugin-awscfn/pull/33))
+- Recompiled plugin with Go version `1.21`. ([#33](https://github.com/turbot/steampipe-plugin-awscfn/pull/33))
 
 ## v0.5.0 [2023-06-20]
 
