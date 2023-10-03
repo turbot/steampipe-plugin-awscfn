@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-awscfn
 go 1.21
 
 require (
-	github.com/awslabs/goformation/v6 v6.0.3
+	github.com/awslabs/goformation/v6 v6.10.0
 	github.com/turbot/go-kit v0.8.0-rc.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.2
 	gopkg.in/yaml.v3 v3.0.1
