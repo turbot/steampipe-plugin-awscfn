@@ -33,7 +33,18 @@ Mappings:
 ### Basic info
 Explore the configuration details of AWS CloudFormation mapping to gain insights into key-value pairs and their paths. This can be useful for understanding the structure and relationships within your AWS CloudFormation templates.
 
-```sql
+```sql+postgres
+select
+  map,
+  key,
+  name,
+  value,
+  path
+from
+  awscfn_mapping;
+```
+
+```sql+sqlite
 select
   map,
   key,
@@ -47,7 +58,21 @@ from
 ### List all HVM64 AMI IDs
 Explore the specific regions where Amazon Machine Images (AMIs) with 64-bit hardware-assisted virtualization are being used. This is beneficial in managing resources and ensuring optimal performance across different regions.
 
-```sql
+```sql+postgres
+select
+  map,
+  key,
+  name,
+  value as hvm64_ami_id,
+  path
+from
+  awscfn_mapping
+where
+  map = 'RegionMap'
+  and name = 'HVM64';
+```
+
+```sql+sqlite
 select
   map,
   key,
@@ -64,7 +89,22 @@ where
 ### Get the HVM64 AMI ID in us-east-1
 Explore the specific Amazon Machine Image (AMI) identifier for 64-bit virtual machines in the US East (N. Virginia) region. This can help in understanding the resources available for cloud computing in that region.
 
-```sql
+```sql+postgres
+select
+  map,
+  key,
+  name,
+  value as hvm64_ami_id,
+  path
+from
+  awscfn_mapping
+where
+  map = 'RegionMap'
+  and key = 'us-east-1'
+  and name = 'HVM64';
+```
+
+```sql+sqlite
 select
   map,
   key,
@@ -82,7 +122,22 @@ where
 ### Get the region whose HVM64 AMI ID is "ami-0bdb828fd58c52235"
 Explore which regions are associated with a specific Amazon Machine Image (AMI) ID. This can be useful in identifying where certain resources are being utilized, aiding in resource allocation and management.
 
-```sql
+```sql+postgres
+select
+  map,
+  key,
+  name,
+  value as hvm64_ami_id,
+  path
+from
+  awscfn_mapping
+where
+  map = 'RegionMap'
+  and name = 'HVM64'
+  and value = 'ami-0bdb828fd58c52235';
+```
+
+```sql+sqlite
 select
   map,
   key,

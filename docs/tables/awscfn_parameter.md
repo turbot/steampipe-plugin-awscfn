@@ -16,7 +16,17 @@ The `awscfn_parameter` table provides insights into the parameters used in the A
 ### Basic info
 Discover the segments that utilize different AWS CloudFormation parameters, such as their names and types, to gain insights into their default values and the path where they're stored. This is useful in understanding the configuration and usage of different parameters within your AWS CloudFormation service.
 
-```sql
+```sql+postgres
+select
+  name,
+  type,
+  default_value,
+  path
+from
+  awscfn_parameter;
+```
+
+```sql+sqlite
 select
   name,
   type,
@@ -47,7 +57,7 @@ Resources:
 ```
 
 
-```sql
+```sql+postgres
 select
   r.name as resource_name,
   r.type as resource_type,
@@ -58,6 +68,20 @@ from
   awscfn_parameter as p
 where
   p.name = properties_src -> 'BucketName' ->> 'Ref'
+  and r.type = 'AWS::S3::Bucket';
+```
+
+```sql+sqlite
+select
+  r.name as resource_name,
+  r.type as resource_type,
+  json_extract(r.properties_src, '$.BucketName') as bucket_name_src,
+  p.default_value as bucket_name
+from
+  awscfn_resource as r,
+  awscfn_parameter as p
+where
+  p.name = json_extract(json_extract(r.properties_src, '$.BucketName'), '$.Ref')
   and r.type = 'AWS::S3::Bucket';
 ```
 
@@ -72,7 +96,19 @@ where
 ### List parameters with no default value configured
 Determine the areas in which parameters are lacking a default setting. This is useful to identify potential areas of concern or oversight in your configuration.
 
-```sql
+```sql+postgres
+select
+  name,
+  type,
+  description,
+  path
+from
+  awscfn_parameter
+where
+  default_value is null;
+```
+
+```sql+sqlite
 select
   name,
   type,
