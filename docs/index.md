@@ -8,6 +8,7 @@ short_name: "awscfn"
 description: "Steampipe plugin to query data from AWS CloudFormation template files."
 og_description: "Query AWS CloudFormation template files with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/awscfn-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # AWS CloudFormation + Steampipe
