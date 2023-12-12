@@ -15,7 +15,7 @@ engines: ["steampipe", "sqlite", "postgres", "export"]
 
 An [AWS CloudFormation template file](https://aws.amazon.com/cloudformation/resources/templates/) is used to declare resources, variables, modules, and more.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query data using SQL.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
 Query all resources in your AWS CloudFormation files:
 
