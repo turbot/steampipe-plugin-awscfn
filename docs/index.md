@@ -8,13 +8,14 @@ short_name: "awscfn"
 description: "Steampipe plugin to query data from AWS CloudFormation template files."
 og_description: "Query AWS CloudFormation template files with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/awscfn-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # AWS CloudFormation + Steampipe
 
 An [AWS CloudFormation template file](https://aws.amazon.com/cloudformation/resources/templates/) is used to declare resources, variables, modules, and more.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query data using SQL.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
 Query all resources in your AWS CloudFormation files:
 
@@ -263,7 +264,4 @@ connection "awscfn" {
 }
 ```
 
-## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-awscfn
-- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)

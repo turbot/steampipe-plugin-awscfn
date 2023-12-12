@@ -1,6 +1,15 @@
-# Table: awscfn_resource
+---
+title: "Steampipe Table: awscfn_resource - Query AWS CloudFormation Resources using SQL"
+description: "Allows users to query AWS CloudFormation Resources, specifically providing information about AWS resources in a stack, such as the logical and physical resource IDs and the type of resource."
+---
 
-Each resource block describes one or more AWS resources that you want to include in the stack, such as Amazon EC2 instances, DynamoDB tables, or Amazon S3 buckets.
+# Table: awscfn_resource - Query AWS CloudFormation Resources using SQL
+
+AWS CloudFormation is a service that helps you model and set up your Amazon Web Services resources. You can create a template that describes the AWS resources that you want to use. The service then takes care of provisioning and configuring those resources for you.
+
+## Table Usage Guide
+
+The `awscfn_resource` table provides insights into AWS resources in a stack. As a DevOps engineer, explore resource-specific details through this table, including the logical and physical resource IDs and the type of resource. Utilize it to uncover information about resources, such as their current status, stack ID, and the time when the resource was last updated.
 
 The `properties_src` column contains the raw resource properties, while the `properties` column uses [AWS' goformation library](https://github.com/awslabs/goformation) to resolve CloudFormation instrinsic functions and references. In some cases, goformation is unable to parse the CloudFormation template or is unable to resolve property values.
 
@@ -72,8 +81,22 @@ where
 ## Examples
 
 ### Basic info
+Analyze the settings of AWS CloudFormation resources to understand their types and configurations. This can be particularly useful to assess the elements within your infrastructure and their current status.
 
-```sql
+```sql+postgres
+select
+  name,
+  type,
+  case
+    when properties is not null then properties
+    else properties_src
+  end as resource_properties,
+  path
+from
+  awscfn_resource;
+```
+
+```sql+sqlite
 select
   name,
   type,
@@ -87,8 +110,24 @@ from
 ```
 
 ### List AWS IAM users
+Explore which AWS Identity and Access Management (IAM) users are active in your system. This provides a comprehensive view of user access, aiding in security and compliance management.
 
-```sql
+```sql+postgres
+select
+  name,
+  type,
+  case
+    when properties is not null then properties
+    else properties_src
+  end as resource_properties,
+  path
+from
+  awscfn_resource
+where
+  type = 'AWS::IAM::User';
+```
+
+```sql+sqlite
 select
   name,
   type,
@@ -104,8 +143,9 @@ where
 ```
 
 ### List AWS CloudTrail trails that are not encrypted
+Explore which AWS CloudTrail trails lack encryption to enhance security measures. This helps in identifying potential vulnerabilities and ensuring compliance with security best practices.
 
-```sql
+```sql+postgres
 select
   name,
   path
@@ -119,8 +159,22 @@ where
   );
 ```
 
-### Get S3 bucket BucketName property value
+```sql+sqlite
+select
+  name,
+  path
+from
+  awscfn_resource
+where
+  type = 'AWS::CloudTrail::Trail'
+  and (
+    ( properties is not null and json_extract(properties, '$.KMSKeyId') is null )
+    or json_extract(properties_src, '$.KMSKeyId') is null
+  );
+```
 
+### Get S3 bucket BucketName property value
+Determine the default name assigned to your AWS S3 bucket resources. This is useful for keeping track of your buckets and ensuring they are named according to your organizational standards.
 For instance, if a CloudFormation template is defined as:
 
 ```yaml
@@ -139,11 +193,24 @@ Resources:
         IndexDocument: index.html
 ```
 
-```sql
+
+```sql+postgres
 select
   name as resource_map_name,
   type as resource_type,
   properties_src ->> 'BucketName' as bucket_name_src,
+  default_value as bucket_name
+from
+  awscfn_resource
+where
+  type = 'AWS::S3::Bucket';
+```
+
+```sql+sqlite
+select
+  name as resource_map_name,
+  type as resource_type,
+  json_extract(properties_src, '$.BucketName') as bucket_name_src,
   default_value as bucket_name
 from
   awscfn_resource
