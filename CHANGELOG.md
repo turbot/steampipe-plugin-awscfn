@@ -1,3 +1,9 @@
+## v0.7.1 [2023-12-12]
+
+_Bug fixes_
+
+- Fixed the missing optional tag on `paths` config parameter.
+
 ## v0.7.0 [2023-12-12]
 
 _What's new?_
