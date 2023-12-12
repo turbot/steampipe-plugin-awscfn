@@ -5,7 +5,7 @@ import (
 )
 
 type awscfnConfig struct {
-	Paths []string `hcl:"paths" steampipe:"watch"`
+	Paths []string `hcl:"paths,optional" steampipe:"watch"`
 }
 
 func ConfigInstance() interface{} {
