@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/awslabs/goformation/v6 v6.0.3
-	github.com/turbot/go-kit v1.1.0
+	github.com/turbot/go-kit v1.3.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.13.1
 	gopkg.in/yaml.v3 v3.0.1
 )
