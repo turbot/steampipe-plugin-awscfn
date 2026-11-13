@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	filehelpers "github.com/turbot/go-kit/files"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 	"gopkg.in/yaml.v3"
 )
 
